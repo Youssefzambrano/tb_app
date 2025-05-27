@@ -69,7 +69,7 @@ class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
               const SizedBox(height: 16),
               Center(
                 child: Text(
-                  'Autochequeo diario',
+                  'Autochequeo semanal',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
