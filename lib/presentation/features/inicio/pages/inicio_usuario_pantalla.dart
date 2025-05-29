@@ -9,7 +9,7 @@ import '../../legal/pages/terminos_condiciones_pantalla.dart';
 import '../../educativo/pages/modulo_educativo_pantalla.dart';
 
 class InicioUsaurioPantalla extends StatelessWidget {
-  const InicioUsaurioPantalla({Key? key}) : super(key: key);
+  const InicioUsaurioPantalla({super.key});
 
   @override
   Widget build(BuildContext context) {

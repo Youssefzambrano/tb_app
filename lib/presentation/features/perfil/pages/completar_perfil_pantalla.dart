@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'perfil_completado_pantalla.dart';
+import '../../../../domain/usecases/registrar_usuario_usecase.dart';
+import '../../../../data/repositories_impl/usuario_repository_impl.dart';
+import '../../../../data/datasources/remote/supabase/auth_supabase_service.dart';
+import '../../../../domain/usecases/registrar_paciente_usecase.dart';
+import '../../../../data/repositories_impl/paciente_repository_impl.dart';
 
 class CompletarPerfilPantalla extends StatefulWidget {
-  const CompletarPerfilPantalla({super.key});
+  final String nombre;
+  const CompletarPerfilPantalla({super.key, required this.nombre});
 
   @override
   State<CompletarPerfilPantalla> createState() =>
@@ -49,14 +56,47 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
     }
   }
 
-  void _guardarPerfil() {
+  Future<void> _guardarPerfil() async {
     if (_formKey.currentState!.validate()) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const PerfilCompletadoPantalla(),
+      final registrarUsuarioUseCase = RegistrarUsuarioUseCase(
+        UsuarioRepositoryImpl(
+          supabase: Supabase.instance.client,
+          authService: AuthSupabaseService(),
         ),
       );
+
+      final registrarPacienteUseCase = RegistrarPacienteUseCase(
+        PacienteRepositoryImpl(supabase: Supabase.instance.client),
+      );
+
+      try {
+        final usuario = await registrarUsuarioUseCase(
+          nombre: widget.nombre,
+          fechaNacimiento: _fechaNacimiento!,
+          genero: _genero!,
+          tipoDocumento: _tipoDocumento!,
+          numeroDocumento: _documentoController.text.trim(),
+          direccion: _direccionController.text.trim(),
+          telefono: _telefonoController.text.trim(),
+        );
+
+        await registrarPacienteUseCase(
+          idUsuario: usuario.id,
+          nombreContacto: _contactoEmergenciaController.text.trim(),
+          telefonoContacto: _telefonoEmergenciaController.text.trim(),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PerfilCompletadoPantalla(),
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar perfil: ${e.toString()}')),
+        );
+      }
     }
   }
 
@@ -126,16 +166,16 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
                             ),
                             items: const [
                               DropdownMenuItem(
-                                value: 'Cédula de ciudadanía',
-                                child: Text('Cédula de ciudadanía'),
+                                value: 'Cedula de Ciudadania',
+                                child: Text('Cedula de Ciudadania'),
                               ),
                               DropdownMenuItem(
                                 value: 'Pasaporte',
                                 child: Text('Pasaporte'),
                               ),
                               DropdownMenuItem(
-                                value: 'Cédula de extranjería',
-                                child: Text('Cédula de extranjería'),
+                                value: 'Cedula de Extranjeria',
+                                child: Text('Cedula de Extranjeria'),
                               ),
                               DropdownMenuItem(
                                 value: 'NUIP',

@@ -7,12 +7,12 @@ class ResumenDosisPacientePantalla extends StatelessWidget {
   final String dosisDelDia;
 
   const ResumenDosisPacientePantalla({
-    Key? key,
+    super.key,
     this.totalDosis = 56,
     this.dosisTomadas = 42,
     this.faseActual = 'Intensiva',
     this.dosisDelDia = 'Tomada',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

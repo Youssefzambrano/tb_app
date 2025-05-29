@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../perfil/pages/completar_perfil_pantalla.dart';
 
 class ConfirmarCorreoPantalla extends StatefulWidget {
-  const ConfirmarCorreoPantalla({super.key});
+  final String nombre;
+  const ConfirmarCorreoPantalla({required this.nombre, super.key});
 
   @override
   State<ConfirmarCorreoPantalla> createState() =>
@@ -11,23 +13,62 @@ class ConfirmarCorreoPantalla extends StatefulWidget {
 }
 
 class _ConfirmarCorreoPantallaState extends State<ConfirmarCorreoPantalla> {
-  final TextEditingController _codigoController = TextEditingController();
-  bool _codigoValido = false;
+  final _secureStorage = const FlutterSecureStorage();
 
-  void _verificarCodigo() {
-    if (_codigoController.text.length == 6) {
-      setState(() => _codigoValido = true);
-    } else {
-      setState(() => _codigoValido = false);
+  Future<void> _verificarConfirmacion() async {
+    final email = await _secureStorage.read(key: 'email');
+    final password = await _secureStorage.read(key: 'password');
+
+    if (email == null || password == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Credenciales no disponibles.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = response.user;
+
+      if (user != null && user.emailConfirmedAt != null) {
+        await _secureStorage.deleteAll();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => CompletarPerfilPantalla(nombre: widget.nombre),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tu correo aún no ha sido confirmado.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   void _reenviarCodigo() {
-    HapticFeedback.lightImpact();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Código reenviado al correo electrónico'),
+          content: Text('Revisa tu bandeja de entrada y spam.'),
           backgroundColor: Color(0xFF67BF63),
         ),
       );
@@ -35,15 +76,7 @@ class _ConfirmarCorreoPantallaState extends State<ConfirmarCorreoPantalla> {
   }
 
   @override
-  void dispose() {
-    _codigoController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    Theme.of(context);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -64,7 +97,7 @@ class _ConfirmarCorreoPantallaState extends State<ConfirmarCorreoPantalla> {
               ),
               const SizedBox(height: 24),
               const Text(
-                'Te enviamos un código a tu correo electrónico',
+                'Te enviamos un enlace de confirmación a tu correo electrónico',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 22,
@@ -73,38 +106,11 @@ class _ConfirmarCorreoPantallaState extends State<ConfirmarCorreoPantalla> {
                 ),
               ),
               const SizedBox(height: 32),
-              TextField(
-                controller: _codigoController,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                onChanged: (_) => _verificarCodigo(),
-                decoration: InputDecoration(
-                  labelText: 'Código de verificación',
-                  counterText: '',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed:
-                      _codigoValido
-                          ? () {
-                            debugPrint('Código confirmado');
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        const CompletarPerfilPantalla(),
-                              ),
-                            );
-                          }
-                          : null,
+                  onPressed: _verificarConfirmacion,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF67BF63),
                     foregroundColor: Colors.white,
@@ -113,7 +119,7 @@ class _ConfirmarCorreoPantallaState extends State<ConfirmarCorreoPantalla> {
                     ),
                   ),
                   child: const Text(
-                    'Confirmar',
+                    'Ya confirmé el correo',
                     style: TextStyle(fontFamily: 'Manrope', fontSize: 18),
                   ),
                 ),
@@ -122,7 +128,7 @@ class _ConfirmarCorreoPantallaState extends State<ConfirmarCorreoPantalla> {
               TextButton(
                 onPressed: _reenviarCodigo,
                 child: const Text(
-                  'Reenviar código',
+                  '¿No recibiste el correo? Revisa tu spam',
                   style: TextStyle(
                     fontSize: 16,
                     fontFamily: 'Manrope',

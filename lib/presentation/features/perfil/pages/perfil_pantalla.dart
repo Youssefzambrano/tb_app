@@ -4,7 +4,7 @@ import '../../auth/pages/cambiar_contraseña_pantalla.dart';
 import '../../legal/pages/tratamiento_datos_pantalla.dart';
 
 class PerfilPantalla extends StatelessWidget {
-  const PerfilPantalla({Key? key}) : super(key: key);
+  const PerfilPantalla({super.key});
 
   @override
   Widget build(BuildContext context) {

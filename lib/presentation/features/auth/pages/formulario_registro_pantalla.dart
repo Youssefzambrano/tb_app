@@ -1,5 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../data/datasources/remote/supabase/auth_supabase_service.dart';
 import 'confirmar_correo_pantalla.dart';
 import '../../legal/pages/tratamiento_datos_pantalla.dart';
 
@@ -16,6 +18,8 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmarController = TextEditingController();
+  final _authService = AuthSupabaseService();
+  final _secureStorage = const FlutterSecureStorage();
 
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
@@ -30,14 +34,29 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
     super.dispose();
   }
 
-  void _registrarse() {
+  void _registrarse() async {
     if (_formKey.currentState!.validate() && _aceptaPolitica) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const ConfirmarCorreoPantalla(),
-        ),
-      );
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      final nombre = _nombreController.text.trim();
+
+      try {
+        await _authService.signUpWithEmail(email: email, password: password);
+
+        await _secureStorage.write(key: 'email', value: email);
+        await _secureStorage.write(key: 'password', value: password);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ConfirmarCorreoPantalla(nombre: nombre),
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      }
     }
   }
 
@@ -108,8 +127,9 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                       },
                       visible: _confirmPasswordVisible,
                       validator: (value) {
-                        if (value != _passwordController.text)
+                        if (value != _passwordController.text) {
                           return 'No coincide';
+                        }
                         return null;
                       },
                     ),
@@ -217,8 +237,9 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
           validator ??
           (value) {
             if (value == null || value.isEmpty) return 'Campo requerido';
-            if (label.contains('Contraseña') && value.length < 6)
+            if (label.contains('Contraseña') && value.length < 6) {
               return 'Mínimo 6 caracteres';
+            }
             return null;
           },
     );
