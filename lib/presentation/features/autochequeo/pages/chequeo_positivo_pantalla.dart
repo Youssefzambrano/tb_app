@@ -9,7 +9,7 @@ class ChequeoPositivoPantalla extends StatelessWidget {
     // Aquí más adelante puedes incluir lógica para abrir WhatsApp u otro canal.
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const InicioUsaurioPantalla()),
+      MaterialPageRoute(builder: (context) => const InicioUsuarioPantalla()),
     );
   }
 

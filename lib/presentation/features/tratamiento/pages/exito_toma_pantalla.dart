@@ -16,7 +16,7 @@ class ExitoTomaPantalla extends StatelessWidget {
     // Luego, volver a Inicio
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const InicioUsaurioPantalla()),
+      MaterialPageRoute(builder: (context) => const InicioUsuarioPantalla()),
     );
   }
 

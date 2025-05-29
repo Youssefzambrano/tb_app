@@ -9,7 +9,7 @@ class ChequeoNegativoPantalla extends StatelessWidget {
     // Lógica para volver al inicio
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const InicioUsaurioPantalla()),
+      MaterialPageRoute(builder: (context) => const InicioUsuarioPantalla()),
     );
   }
 

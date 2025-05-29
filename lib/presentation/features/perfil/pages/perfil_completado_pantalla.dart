@@ -59,7 +59,7 @@ class PerfilCompletadoPantalla extends StatelessWidget {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const InicioUsaurioPantalla(),
+                          builder: (context) => const InicioUsuarioPantalla(),
                         ),
                       );
                     },

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../inicio/pages/inicio_usuario_pantalla.dart';
 //import 'inicio_enfermero_pantalla.dart';
-import 'recuperar_contraseña_pantalla.dart';
+import 'recuperar_contrasena_pantalla.dart';
+import '../../../controllers/login_controller.dart';
 
 class IngresarPantalla extends StatefulWidget {
   const IngresarPantalla({super.key});
@@ -15,6 +16,8 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final _loginController = LoginController();
+
   bool _passwordVisible = false;
 
   @override
@@ -53,6 +56,7 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
                   borderRadius: BorderRadius.circular(32),
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
@@ -147,14 +151,13 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
                               ),
                               onPressed: () {
                                 HapticFeedback.lightImpact();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) =>
-                                            const InicioUsaurioPantalla(),
-                                  ),
-                                );
+                                if (_formKey.currentState!.validate()) {
+                                  _loginController.iniciarSesion(
+                                    context: context,
+                                    email: _emailController.text.trim(),
+                                    password: _passwordController.text.trim(),
+                                  );
+                                }
                               },
                               child: const Text(
                                 'Ingresar',

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../auth/pages/cambiar_contraseña_pantalla.dart';
+import '../../auth/pages/cambiar_contrasena_pantalla.dart';
 import '../../legal/pages/tratamiento_datos_pantalla.dart';
 
 class PerfilPantalla extends StatelessWidget {

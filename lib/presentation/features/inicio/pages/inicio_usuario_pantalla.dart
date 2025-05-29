@@ -7,9 +7,10 @@ import '../../tratamiento/pages/resumen_fase_paciente_pantalla.dart';
 import '../../perfil/pages/perfil_pantalla.dart';
 import '../../legal/pages/terminos_condiciones_pantalla.dart';
 import '../../educativo/pages/modulo_educativo_pantalla.dart';
+import '../../../controllers/session_controller.dart';
 
-class InicioUsaurioPantalla extends StatelessWidget {
-  const InicioUsaurioPantalla({super.key});
+class InicioUsuarioPantalla extends StatelessWidget {
+  const InicioUsuarioPantalla({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -94,11 +95,7 @@ class InicioUsaurioPantalla extends StatelessWidget {
             leading: const Icon(Icons.logout),
             title: const Text('Cerrar sesión'),
             onTap: () {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
+              SessionController().cerrarSesionYRedirigir(context);
             },
           ),
         ],

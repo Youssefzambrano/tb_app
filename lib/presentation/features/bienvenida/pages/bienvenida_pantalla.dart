@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import '../../auth/pages/ingresar_pantalla.dart';
 import 'mensaje_bienvenida_pantalla.dart';
 
-class bienvenida_pantalla extends StatelessWidget {
-  const bienvenida_pantalla({super.key});
+class BienvenidaPantalla extends StatelessWidget {
+  const BienvenidaPantalla({super.key});
 
   @override
   Widget build(BuildContext context) {
