@@ -1,10 +1,10 @@
-class SintomasPaciente {
+class SintomaPaciente {
   final int id;
   final int idSeguimiento;
   final int idSintoma;
   final DateTime fechaRegistro;
 
-  const SintomasPaciente({
+  const SintomaPaciente({
     required this.id,
     required this.idSeguimiento,
     required this.idSintoma,

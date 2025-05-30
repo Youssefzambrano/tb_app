@@ -12,6 +12,6 @@ class MedicacionPacienteF1 {
     required this.idMedicamento,
     required this.dosisDiaria,
     required this.frecuencia,
-    required this.duracion,
+    this.duracion = 56,
   });
 }

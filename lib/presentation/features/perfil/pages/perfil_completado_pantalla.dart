@@ -35,7 +35,7 @@ class PerfilCompletadoPantalla extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Ahora puedes comenzar a usar TB Care y hacer seguimiento a tu tratamiento. ¡Vamos adelante! ',
+                  'Ahora puedes comenzar a usar EvitaTB y hacer seguimiento a tu tratamiento. ¡Vamos adelante! ',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Manrope',
@@ -64,7 +64,7 @@ class PerfilCompletadoPantalla extends StatelessWidget {
                       );
                     },
                     child: const Text(
-                      'Ir al inicio',
+                      'Empezar tratamiento',
                       style: TextStyle(
                         fontFamily: 'Manrope',
                         fontSize: 16,
