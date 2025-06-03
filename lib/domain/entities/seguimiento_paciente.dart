@@ -1,5 +1,5 @@
 class SeguimientoPaciente {
-  final int id;
+  final int? id;
   final int idPaciente;
   final int idTratamientoPaciente;
   final DateTime fechaReporte;
@@ -12,4 +12,21 @@ class SeguimientoPaciente {
     required this.fechaReporte,
     required this.dosisOmitidas,
   });
+
+  SeguimientoPaciente copyWith({
+    int? id,
+    int? idPaciente,
+    int? idTratamientoPaciente,
+    DateTime? fechaReporte,
+    int? dosisOmitidas,
+  }) {
+    return SeguimientoPaciente(
+      id: id ?? this.id,
+      idPaciente: idPaciente ?? this.idPaciente,
+      idTratamientoPaciente:
+          idTratamientoPaciente ?? this.idTratamientoPaciente,
+      fechaReporte: fechaReporte ?? this.fechaReporte,
+      dosisOmitidas: dosisOmitidas ?? this.dosisOmitidas,
+    );
+  }
 }

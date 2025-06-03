@@ -2,7 +2,7 @@ import '../../domain/entities/tratamiento_paciente.dart';
 
 class TratamientoPacienteModel extends TratamientoPaciente {
   const TratamientoPacienteModel({
-    required int id,
+    required int? id, // ID opcional
     required int idPaciente,
     required String nombre,
     String? descripcion,
@@ -52,9 +52,26 @@ class TratamientoPacienteModel extends TratamientoPaciente {
     );
   }
 
+  factory TratamientoPacienteModel.fromEntity(TratamientoPaciente entity) {
+    return TratamientoPacienteModel(
+      id: entity.id,
+      idPaciente: entity.idPaciente,
+      nombre: entity.nombre,
+      descripcion: entity.descripcion,
+      fechaInicio: entity.fechaInicio,
+      fechaFinalizacion: entity.fechaFinalizacion,
+      duracionTotal: entity.duracionTotal,
+      estado: entity.estado,
+      pesoPaciente: entity.pesoPaciente,
+      totalDosis: entity.totalDosis,
+      dosisPendientes: entity.dosisPendientes,
+      fase1IntensivaActiva: entity.fase1IntensivaActiva,
+      fase2ContinuacionActiva: entity.fase2ContinuacionActiva,
+    );
+  }
+
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = {
       'id_paciente': idPaciente,
       'nombre': nombre,
       'descripcion': descripcion,
@@ -68,5 +85,11 @@ class TratamientoPacienteModel extends TratamientoPaciente {
       'fase1_intensiva_activa': fase1IntensivaActiva,
       'fase2_continuacion_activa': fase2ContinuacionActiva,
     };
+
+    if (id != null) {
+      map['id'] = id;
+    }
+
+    return map;
   }
 }

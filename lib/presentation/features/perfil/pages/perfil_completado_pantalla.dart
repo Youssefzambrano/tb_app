@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../inicio/pages/inicio_usuario_pantalla.dart';
+import '../../../controllers/iniciar_tratamiento_controller_helper.dart';
 
 class PerfilCompletadoPantalla extends StatelessWidget {
   const PerfilCompletadoPantalla({super.key});
@@ -56,15 +56,11 @@ class PerfilCompletadoPantalla extends StatelessWidget {
                     ),
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const InicioUsuarioPantalla(),
-                        ),
-                      );
+                      IniciarTratamientoController()
+                          .iniciarTratamientoDesdeSesion(context);
                     },
                     child: const Text(
-                      'Empezar tratamiento',
+                      'Empezar',
                       style: TextStyle(
                         fontFamily: 'Manrope',
                         fontSize: 16,

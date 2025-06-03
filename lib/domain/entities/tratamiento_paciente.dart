@@ -1,5 +1,5 @@
 class TratamientoPaciente {
-  final int id;
+  final int? id;
   final int idPaciente;
   final String nombre;
   final String? descripcion;

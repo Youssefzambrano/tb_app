@@ -2,12 +2,12 @@ import '../../domain/entities/medicacion_paciente_f2.dart';
 
 class MedicacionPacienteF2Model extends MedicacionPacienteF2 {
   const MedicacionPacienteF2Model({
-    required int id,
+    int? id,
     required int idTratamientoPaciente,
     required int idMedicamento,
     required double dosisDiaria,
     required int frecuencia,
-    int duracion = 112,
+    int duracion = 56,
   }) : super(
          id: id,
          idTratamientoPaciente: idTratamientoPaciente,
@@ -24,13 +24,13 @@ class MedicacionPacienteF2Model extends MedicacionPacienteF2 {
       idMedicamento: map['id_medicamento'],
       dosisDiaria: map['dosis_diaria'].toDouble(),
       frecuencia: map['frecuencia'],
-      duracion: map['duracion'] ?? 112,
+      duracion: map['duracion'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      if (id != null) 'id': id,
       'id_tratamiento_paciente': idTratamientoPaciente,
       'id_medicamento': idMedicamento,
       'dosis_diaria': dosisDiaria,

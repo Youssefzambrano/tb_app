@@ -1,17 +1,17 @@
 import '../../domain/entities/seguimiento_paciente.dart';
 
 class SeguimientoPacienteModel extends SeguimientoPaciente {
-  const SeguimientoPacienteModel({
-    required int id,
+  SeguimientoPacienteModel({
+    int? id,
     required int idPaciente,
     required int idTratamientoPaciente,
-    required DateTime fechaReporte,
+    DateTime? fechaReporte,
     required int dosisOmitidas,
   }) : super(
          id: id,
          idPaciente: idPaciente,
          idTratamientoPaciente: idTratamientoPaciente,
-         fechaReporte: fechaReporte,
+         fechaReporte: fechaReporte ?? DateTime.now(),
          dosisOmitidas: dosisOmitidas,
        );
 
@@ -26,12 +26,18 @@ class SeguimientoPacienteModel extends SeguimientoPaciente {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = {
       'id_paciente': idPaciente,
       'id_tratamiento_paciente': idTratamientoPaciente,
       'fecha_reporte': fechaReporte.toIso8601String(),
       'dosis_omitidas': dosisOmitidas,
     };
+
+    final idValue = super.id;
+    if (idValue != null) {
+      map['id'] = idValue;
+    }
+
+    return map;
   }
 }
