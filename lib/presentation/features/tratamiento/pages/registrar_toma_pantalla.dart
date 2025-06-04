@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'exito_toma_pantalla.dart';
+import '../../../controllers/registrar_toma_controller.dart';
 
 class RegistrarTomaPantalla extends StatelessWidget {
   const RegistrarTomaPantalla({super.key});
@@ -121,12 +121,9 @@ class RegistrarTomaPantalla extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ExitoTomaPantalla(),
-              ),
+          onPressed: () async {
+            await RegistrarTomaController().registrarTomaDesdeSesion(
+              context: context,
             );
           },
           child: const Text(

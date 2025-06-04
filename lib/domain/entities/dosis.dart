@@ -1,5 +1,5 @@
 class Dosis {
-  final int id;
+  final int? id;
   final int idTratamientoPaciente;
   final int idMedicamento;
   final DateTime fechaHoraToma;

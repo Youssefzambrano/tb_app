@@ -51,13 +51,8 @@ class InicioUsuarioPantalla extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundImage: AssetImage('assets/images/evita_feliz.png'),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Nombre del usuario',
+                Text(
+                  SessionController().nombreUsuario,
                   style: TextStyle(
                     color: Colors.black,
                     fontFamily: 'Outfit',
