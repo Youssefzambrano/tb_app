@@ -76,6 +76,46 @@ flutter:
      - assets/images/salida.png
      - assets/images/meta.png
      - .env
+     # images del modulo educativo Principal
+     - assets/images_modulo_educativo/Qué debes saber sobre  tuberculosis (TB).png
+     - assets/images_modulo_educativo/Como evitar contagiar a otros.png
+     - assets/images_modulo_educativo/Qué habitos saludables debo realizar.png
+     - assets/images_modulo_educativo/Qué recomendaciones debo seguir durante el tratamiento.png
+     # archivo json del modulo educativo
+     - assets/modulo_educativo.json
+     #images del json del modulo educativo
+     # imagenes que_debes_saber
+     - "assets/images_modulo_educativo/Tuberculosis Pulmonar.png"
+     - "assets/images_modulo_educativo/Tuberculosis extrapulmonar.png"
+     - "assets/images_modulo_educativo/¿Qué es la tuberculosis.png"
+     - "assets/images_modulo_educativo/Como se transmite la tuberculosis.png"
+     - "assets/images_modulo_educativo/Cuando no se transmite.png"
+     -  "assets/images_modulo_educativo/Sintomas de la tuberculosis.png"
+     - "assets/images_modulo_educativo/Otros sintomas que pueden presentarse.png"
+     - "assets/images_modulo_educativo/muestras.png"
+     - "assets/images_modulo_educativo/Pasos_para_recoger_muestra.png"
+     - "assets/images_modulo_educativo/Recomendaciones.png"
+     # habitos saludables
+     - "assets/images_modulo_educativo/10_Consejos_saludables1.png"
+     - "assets/images_modulo_educativo/10_habitos_saludables2.png"
+     - "assets/images_modulo_educativo/alimentos1.png"
+     - "assets/images_modulo_educativo/Alimento2.png"
+     #recomendaciones_tratamiento
+     - "assets/images_modulo_educativo/Tratamiento de tuberculosis.png"
+     - "assets/images_modulo_educativo/Medicamento.png"
+     - "assets/images_modulo_educativo/Fase intensiva.png"
+     - "assets/images_modulo_educativo/Fase continuacion.png"
+     - "assets/images_modulo_educativo/Recomendaciones generales 1.png"
+     - "assets/images_modulo_educativo/Recomendaciones generales 2.png"
+     - "assets/images_modulo_educativo/Recomendaciones generales 3.png"
+     - "assets/images_modulo_educativo/Recomendaciones generales 4.png"
+     - "assets/images_modulo_educativo/Recomendaciones generales 5.png"
+     - "assets/images_modulo_educativo/Recomendaciones_adversas_al_tratamiento.png"
+     #evitar_contagio
+     - "assets/images_modulo_educativo/Recomendacione_contagios1.png"
+     - "assets/images_modulo_educativo/Recomendaciones_contagios2.png"
+  
+
 
 
 

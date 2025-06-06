@@ -1,0 +1,127 @@
+{
+  "que_debes_saber": [
+    {
+      "titulo": "¿Qué es la tuberculosis?",
+    "contenido": "Es una enfermedad infecciosa que se puede prevenir y curar, causada por un grupo de bacterias llamado **Mycobacterium Tuberculosis**. \n Hoy en día, se puede detectar y tratar de forma rápida y gratuita, lo que permite curarse y evitar contagios.",
+      "imagen": "assets/images_modulo_educativo/¿Qué es la tuberculosis.png"
+    },
+    {
+      "titulo": "Tipos de tuberculosis",
+      "contenido": "1. **Tuberculosis pulmonar**: La bacteria de la tuberculosis se aloja principalmente en los pulmones.\n2. **Tuberculosis extrapulmonar**: La bacteria puede afectar órganos como riñones, huesos, cerebro, piel, entre otros.",
+      "imagenes": [
+        "assets/images_modulo_educativo/Tuberculosis Pulmonar.png",
+        "assets/images_modulo_educativo/Tuberculosis extrapulmonar.png"
+      ]
+    },
+    {
+      "titulo": "¿Cómo se transmite la tuberculosis?",
+      "contenido": "Una persona infectada con tuberculosis puede liberar la bacteria en el aire al **toser, estornudar o hablar cerca de otra persona**. \n La bacteria viaja en pequeñas gotas de saliva y puede ingresar al cuerpo de una persona sana, causando infección.",
+      "imagen": "assets/images_modulo_educativo/Como se transmite la tuberculosis.png"
+    },
+    {
+      "titulo": "¿Cuándo NO se transmite?",
+      "contenido": "La tuberculosis **NO** se transmite por:\n1. Dar la mano\n2. Compartir alimentos\n3. Besar o abrazar\n4. Compartir ropa u objetos en común (platos, cubiertos, etc.)\n5. Por herencia\n6. Por relaciones sexuales.",
+      "imagen": "assets/images_modulo_educativo/Cuando no se transmite.png"
+    },
+    {
+      "titulo": "Síntomas de la tuberculosis",
+      "contenido": "1. Tos con flemas, gargajos o esputo por más de 15 días\n2. Pérdida de peso\n3. Cansancio\n4. Fiebre\n5. Sudoración nocturna\n6. Pérdida de apetito\nOtros síntomas pueden estar presentes.",
+      "imagenes": [
+        "assets/images_modulo_educativo/Sintomas de la tuberculosis.png",
+        "assets/images_modulo_educativo/Otros sintomas que pueden presentarse.png"
+      ]
+    },
+    {
+      "titulo": "Diagnóstico de tuberculosis",
+      "contenido": "Se realiza mediante exámenes médicos y de laboratorio, confirmados por baciloscopia:\n- Toma de muestra de esputo/gargajo/flema.\nPasos para la muestra:\n1. El primer esputo de la mañana siguiente a la consulta inicial.\n2. El primer esputo de la mañana siguiente a la consulta inicial.\n3. Al momento de entregar la 2 muestra.",
+      "imagen": "assets/images_modulo_educativo/muestras.png"
+    },
+    {
+      "titulo": "Pasos para recoger la muestra",
+      "contenido": "1. Tomar aire profundamente por la nariz.\n2. Retener el aire en los pulmones unos segundos.\n3. Toser fuerte inclinándose hacia adelante.\n4. Depositar el esputo/flema en el frasco.\n5. Tapar el frasco y entregarlo al personal de salud.",
+      "imagen": "assets/images_modulo_educativo/Pasos_para_recoger_muestra.png"
+    },
+    {
+      "titulo": "Recomendaciones para la toma de muestra",
+      "contenido": "1. Realizar la toma de la muestra en un lugar ventilado.\n2. Marcar los frascos con nombre, cédula y número de muestra.\n3. La segunda muestra se debe hacer en casa, recién levantado, sin tomar agua ni cepillarse los dientes.\n4. No hacer la toma en baños, salas de espera o consultorios.",
+      "imagen": "assets/images_modulo_educativo/Recomendaciones.png"
+    }
+  ],
+  "habitos_saludables": [
+    {
+      "titulo": "10 consejos saludables (Parte 1)",
+      "contenido": "1. Hacer ejercicio\n2. No fumar\n3. No tomar alcohol\n4. Dormir bien\n5. Asistir a controles médicos",
+      "imagen": "assets/images_modulo_educativo/10_Consejos_saludables1.png"
+    },
+    {
+      "titulo": "10 consejos saludables (Parte 2)",
+      "contenido": "6. No tomar el tratamiento en la noche\n7. Buena ventilación mientras duerme\n8. Tomar agua\n9. Establecer un horario para dormir\n10. Cambiarse la pijama diariamente",
+      "imagen": "assets/images_modulo_educativo/10_habitos_saludables2.png"
+    },
+    {
+      "titulo": "Recomendaciones nutricionales",
+      "contenido": "1. Consumir 6 pequeñas comidas al día\n2. Consumir de 5 a 6 frutas al día\n3. Consumir 5 a 6 verduras al día\n4. Evitar pan, azúcar, fritos, enlatados y café\n5. Comer alimentos ricos en vitamina E",
+      "imagen": "assets/images_modulo_educativo/alimentos1.png"
+    },
+    {
+      "titulo": "Hábitos saludables adicionales",
+      "contenido": "1. Consumir alimentos ricos en calcio y vitamina D\n2. Solo consumir cítricos 3 horas después de tomar el medicamento\n3. Comer frutas y verduras amarillas\n4. Evitar ayunos largos\n5. Tomar de 10 a 12 vasos de agua diarios",
+      "imagen": "assets/images_modulo_educativo/Alimento2.png"
+    }
+  ],
+  "recomendaciones_tratamiento": [
+    {
+      "titulo": "Tratamiento de tuberculosis",
+      "contenido": "El tratamiento se realiza con medicamentos llamados antibióticos, que ayudan a eliminar las bacterias de la enfermedad. \n Se hace con **supervisión diaria**. \n Usando videos en tiempo real donde se ve a la persona tomando sus medicinas. \n (**TDO: Tratamiento Directamente Observado**).",
+      "imagen": "assets/images_modulo_educativo/Tratamiento de tuberculosis.png"
+    },
+    {
+      "titulo": "El medicamento",
+      "contenido": "El medicamento tetraconjugado contiene **cuatro medicinas en una sola cápsula**:\n1. Rifampicina\n2. Isoniazida\n3. Pirazinamida\n4. Etambutol\nLa cantidad a tomar depende del peso, indicada por el personal de salud. \n ¡Nunca te automediques! Sigue siempre las instrucciones del médico o enfermero.",
+      "imagen": "assets/images_modulo_educativo/Medicamento.png"
+    },
+    {
+      "titulo": "Fases de tratamiento",
+      "contenido": "1. **Fase intensiva**: Isoniazida, Rifampicina, Pirazinamida y Etambutol por 56 dosis (lunes a sábado).\n2. **Fase de continuación**: Isoniazida y Rifampicina hasta completar 112 dosis (lunes a sábado).",
+      "imagenes": [
+        "assets/images_modulo_educativo/Fase intensiva.png",
+        "assets/images_modulo_educativo/Fase continuacion.png"
+      ]
+    },
+    {
+      "titulo": "Recomendaciones generales",
+      "contenido": "1. Tomar el medicamento a diario, a la misma hora y en la cantidad indicada.\n2. No guardar el medicamento en la nevera ni al calor, sino en un lugar seco y con sombra.\n3. No automedicarse, ni tomar remedios caseros.\n4. Informar si tienes molestias de salud por los medicamentos.\n5. Ordenar los medicamentos en un pastillero.",
+      "imagenes": [
+        "assets/images_modulo_educativo/Recomendaciones generales 1.png",
+        "assets/images_modulo_educativo/Recomendaciones generales 2.png",
+        "assets/images_modulo_educativo/Recomendaciones generales 3.png",
+        "assets/images_modulo_educativo/Recomendaciones generales 4.png",
+        "assets/images_modulo_educativo/Recomendaciones generales 5.png"
+      ]
+    },
+    {
+      "titulo": "Reacciones adversas a los medicamentos (1)",
+      "contenido": "**Rifampicina**: Coloración naranja de orina, lágrimas y saliva (normal), mareo, debilidad o malestar general, puede causar problemas en el hígado (color amarillo en ojos o piel).\n**Isoniazida**: Hormigueo o ardor en manos y pies, cambios de humor o dificultad para dormir.",
+      "imagen": "assets/images_modulo_educativo/Recomendaciones generales 4.png"
+    },
+    {
+      "titulo": "Reacciones adversas a los medicamentos (2)",
+      "contenido": "**Pirazinamida**: Dolor o inflamación en las articulaciones, malestar estomacal, náuseas y vómito, no tomar si hay daño hepático.\n**Etambutol**: Cambios en la vista (visión borrosa o dificultad para ver colores).",
+      "imagen": "assets/images_modulo_educativo/Recomendaciones_adversas_al_tratamiento.png"
+    }
+  ],
+  "evitar_contagio": [
+    {
+      "titulo": "Recomendaciones para evitar contagiar a otros",
+      "contenido": "1. No es necesario separar platos o cubiertos, basta con lavarlos.\n2. Usa tapabocas los primeros 15 días.\n3. Mantén las superficies de la casa limpias.\n4. Mantén las ventanas abiertas y deja entrar la luz.\n5. Tápate la boca al toser o estornudar.",
+      "imagen": "assets/images_modulo_educativo/Recomendacione_contagios1.png"
+    },
+    {
+      "titulo": "Otras recomendaciones importantes",
+      "contenido": "1. Evita recibir visitas de niños y personas con defensas bajas.\n2. Bota el papel con flemas en una bolsa y mantenla cerrada.\n3. Busca apoyo de tu familia para cumplir el tratamiento.\n4. Lávate las manos luego de toser o estornudar.",
+      "imagen": "assets/images_modulo_educativo/Recomendaciones_contagios2.png"
+    }
+  ]
+}
+
+

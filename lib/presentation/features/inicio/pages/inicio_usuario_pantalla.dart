@@ -6,7 +6,7 @@ import '../../tratamiento/pages/resumen_dosis_paciente_pantalla.dart';
 import '../../tratamiento/pages/resumen_fase_paciente_pantalla.dart';
 import '../../perfil/pages/perfil_pantalla.dart';
 import '../../legal/pages/terminos_condiciones_pantalla.dart';
-import '../../educativo/pages/modulo_educativo_pantalla.dart';
+import '../../educativo/modulo_educativo_pantalla.dart';
 import '../../../controllers/session_controller.dart';
 
 class InicioUsuarioPantalla extends StatelessWidget {
