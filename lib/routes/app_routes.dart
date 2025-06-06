@@ -23,6 +23,9 @@ import '../presentation/features/perfil/pages/perfil_completado_pantalla.dart';
 // Autochequeo
 import '../presentation/features/autochequeo/pages/modulo_autochequeo_pantalla.dart';
 
+// Tratamiento
+import 'package:tb_app/presentation/features/tratamiento/pages/exito_toma_pantalla.dart';
+
 class AppRoutes {
   static const splash = '/';
   static const bienvenida = '/bienvenida';
@@ -35,6 +38,7 @@ class AppRoutes {
   static const completarPerfil = '/completar-perfil';
   static const perfilCompletado = '/perfil-completado';
   static const autochequeo = '/autochequeo';
+  static const exitoToma = '/exito-toma';
 
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => const SplashScreen(),
@@ -48,5 +52,6 @@ class AppRoutes {
     completarPerfil: (context) => const CompletarPerfilPantalla(nombre: ''),
     perfilCompletado: (context) => const PerfilCompletadoPantalla(),
     autochequeo: (context) => const ModuloAutochequeoPantalla(),
+    exitoToma: (context) => const ExitoTomaPantalla(),
   };
 }
