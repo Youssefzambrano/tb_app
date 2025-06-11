@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../controllers/dashboard_peciente_controller.dart';
+import '../../../viewmodels/dashboard_resumen_paciente.dart';
 
 class ResumenDosisPacientePantalla extends StatelessWidget {
-  final int totalDosis;
-  final int dosisTomadas;
-  final String faseActual;
-  final String dosisDelDia;
-
-  const ResumenDosisPacientePantalla({
-    super.key,
-    this.totalDosis = 56,
-    this.dosisTomadas = 42,
-    this.faseActual = 'Intensiva',
-    this.dosisDelDia = 'Tomada',
-  });
+  const ResumenDosisPacientePantalla({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final double progreso = dosisTomadas / totalDosis;
-    final DateTime ultimaDosisFecha = DateTime.now().subtract(
-      const Duration(days: 1),
-    );
+    final controller = Provider.of<DashboardPacienteController>(context);
+    final resumen = controller.resumen;
+
+    if (controller.cargando) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (resumen == null) {
+      return const Scaffold(
+        body: Center(child: Text('No hay datos disponibles')),
+      );
+    }
+
+    final double progreso = resumen.dosisTomadas / resumen.dosisTotales;
+    final ultimaDosis = resumen.ultimaDosis ?? DateTime.now();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -32,121 +35,106 @@ class ResumenDosisPacientePantalla extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Encabezado
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF8BC3D9), Color(0xFF67BF63)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total de dosis tomadas',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 30,
-                    fontFamily: 'Manrope',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  '$dosisTomadas',
-                  style: const TextStyle(
-                    fontSize: 64,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Outfit',
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  'de $totalDosis dosis',
-                  style: TextStyle(
-                    color: Colors.black.withOpacity(0.95),
-                    fontSize: 22,
-                    fontFamily: 'Manrope',
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Barra de progreso
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: progreso,
-                    minHeight: 14,
-                    backgroundColor: Colors.white24,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text.rich(
-                  TextSpan(
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: Colors.black,
-                      fontFamily: 'Manrope',
-                    ),
-                    children: [
-                      TextSpan(
-                        text: '${(progreso * 100).toStringAsFixed(1)}%',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const TextSpan(text: ' del total de dosis completado'),
-                    ],
-                  ),
-                ),
-              ],
+          // [Encabezado con resumen]
+          _buildHeader(resumen, progreso),
+          // [Contenido con detalles]
+          _buildDetails(resumen, ultimaDosis),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(DashboardPacienteResumen resumen, double progreso) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF8BC3D9), Color(0xFF67BF63)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Total de dosis tomadas',
+            style: TextStyle(fontSize: 30, fontFamily: 'Manrope'),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${resumen.dosisTomadas}',
+            style: const TextStyle(
+              fontSize: 64,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Outfit',
             ),
           ),
-
-          // Contenido
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildInfoCard(
-                      title: 'Última dosis',
-                      subtitle:
-                          '${ultimaDosisFecha.day}/${ultimaDosisFecha.month}/${ultimaDosisFecha.year}',
-                      icon: Icons.calendar_today,
-                    ),
-                    _buildInfoCard(
-                      title: 'Dosis del día',
-                      subtitle: dosisDelDia,
-                      icon: Icons.check_circle_outline,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildInfoCard(
-                      title: 'Medicamento',
-                      subtitle: 'Isoniazida',
-                      icon: Icons.medical_services,
-                    ),
-                    _buildInfoCard(
-                      title: 'Fase actual',
-                      subtitle: faseActual,
-                      icon: Icons.verified,
-                    ),
-                  ],
-                ),
-              ],
+          Text(
+            'de ${resumen.dosisTotales} dosis',
+            style: const TextStyle(fontSize: 22, fontFamily: 'Manrope'),
+          ),
+          const SizedBox(height: 20),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progreso,
+              minHeight: 14,
+              backgroundColor: Colors.white24,
+              color: Colors.black,
             ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '${(progreso * 100).toStringAsFixed(1)}% del total de dosis completado',
+            style: const TextStyle(fontSize: 18, fontFamily: 'Manrope'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetails(DashboardPacienteResumen resumen, DateTime ultimaDosis) {
+    return Expanded(
+      child: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildInfoCard(
+                title: 'Última dosis',
+                subtitle:
+                    '${ultimaDosis.day}/${ultimaDosis.month}/${ultimaDosis.year}',
+                icon: Icons.calendar_today,
+              ),
+              _buildInfoCard(
+                title: 'Dosis del día',
+                subtitle: resumen.dosisDeHoyTomada ? 'Tomada' : 'Pendiente',
+                icon: Icons.check_circle_outline,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildInfoCard(
+                title: 'Medicamento',
+                subtitle: resumen.medicamentoActual,
+                icon: Icons.medical_services,
+              ),
+              _buildInfoCard(
+                title: 'Fase actual',
+                subtitle: resumen.faseActual,
+                icon: Icons.verified,
+              ),
+            ],
           ),
         ],
       ),

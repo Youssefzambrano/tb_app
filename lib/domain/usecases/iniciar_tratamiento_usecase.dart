@@ -11,6 +11,7 @@ class IniciarTratamientoUseCase {
 
   Future<void> call({required int idPaciente, double? pesoPaciente}) async {
     // 1. Crear tratamiento base
+    final now = DateTime.now();
     final tratamiento = TratamientoPaciente(
       id: null, // ID se autogenera
       idPaciente: idPaciente,
@@ -25,6 +26,8 @@ class IniciarTratamientoUseCase {
       dosisPendientes: 168,
       fase1IntensivaActiva: true,
       fase2ContinuacionActiva: false,
+      fechaInicioFase1: now,
+      fechaInicioFase2: null,
     );
 
     // 2. Medicación fase intensiva

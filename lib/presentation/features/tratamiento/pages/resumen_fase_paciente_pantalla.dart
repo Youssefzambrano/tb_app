@@ -1,57 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../../controllers/resumen_fase_controller.dart';
 
-class ResumenFasePacientePantalla extends StatefulWidget {
-  final String faseActual;
-  final int duracionDias;
-  final int diasRestantes;
-
-  const ResumenFasePacientePantalla({
-    super.key,
-    this.faseActual = 'Fase intensiva',
-    this.duracionDias = 56,
-    this.diasRestantes = 14,
-  });
-
-  @override
-  State<ResumenFasePacientePantalla> createState() =>
-      _ResumenFasePacientePantallaState();
-}
-
-class _ResumenFasePacientePantallaState
-    extends State<ResumenFasePacientePantalla> {
-  int _selectedIndex = 0;
+class ResumenFasePacientePantalla extends StatelessWidget {
+  const ResumenFasePacientePantalla({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final DateTime fechaInicio = DateTime.now().subtract(
-      Duration(days: widget.duracionDias - widget.diasRestantes),
-    );
-    final DateTime fechaFin = DateTime.now().add(
-      Duration(days: widget.diasRestantes),
-    );
-    final DateFormat formatter = DateFormat('dd/MM/yyyy');
+    final controller = Provider.of<ResumenFaseController>(context);
 
-    final List<Map<String, dynamic>> fases = [
-      {
-        'estado': 'Actual',
-        'fase': 'Fase intensiva',
-        'completados': widget.duracionDias - widget.diasRestantes,
-        'restantes': widget.diasRestantes,
-        'fechaInicio': formatter.format(fechaInicio),
-        'fechaFin': formatter.format(fechaFin),
-      },
-      {
-        'estado': 'Pendiente',
-        'fase': 'Fase continuación',
-        'completados': 0,
-        'restantes': 112,
-        'fechaInicio': 'Pendiente',
-        'fechaFin': 'Pendiente',
-      },
-    ];
+    if (controller.cargando) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-    final fase = fases[_selectedIndex];
+    if (controller.resumen == null) {
+      return const Scaffold(
+        body: Center(child: Text('No hay datos disponibles')),
+      );
+    }
+
+    final String fase = controller.resumen!.faseActual;
+    final int completados = controller.diasCompletados;
+    final int restantes = controller.diasRestantes;
+    final String fechaInicio = controller.fechaInicio;
+    final String fechaFin = controller.fechaFin;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -61,27 +33,10 @@ class _ResumenFasePacientePantallaState
         title: const Text('Resumen de Fase'),
         elevation: 0,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFF67BF63),
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() => _selectedIndex = index);
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: 'Intensiva',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_turned_in),
-            label: 'Continuación',
-          ),
-        ],
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Encabezado con fase y duración
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
@@ -99,9 +54,9 @@ class _ResumenFasePacientePantallaState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  fase['estado'],
-                  style: const TextStyle(
+                const Text(
+                  'Actual',
+                  style: TextStyle(
                     color: Colors.black,
                     fontSize: 30,
                     fontFamily: 'Manrope',
@@ -109,7 +64,7 @@ class _ResumenFasePacientePantallaState
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  fase['fase'],
+                  fase,
                   style: const TextStyle(
                     fontSize: 35,
                     fontWeight: FontWeight.bold,
@@ -118,7 +73,7 @@ class _ResumenFasePacientePantallaState
                   ),
                 ),
                 Text(
-                  'La duración es de ${fase['completados'] + fase['restantes']} días',
+                  'La duración es de ${completados + restantes} días',
                   style: TextStyle(
                     color: Colors.black.withOpacity(0.95),
                     fontSize: 22,
@@ -128,6 +83,8 @@ class _ResumenFasePacientePantallaState
               ],
             ),
           ),
+
+          // Detalle con tarjetas
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(20),
@@ -137,12 +94,12 @@ class _ResumenFasePacientePantallaState
                   children: [
                     _buildInfoCard(
                       title: 'Completados',
-                      subtitle: '${fase['completados']} días',
+                      subtitle: '$completados días',
                       icon: Icons.check_circle_outline,
                     ),
                     _buildInfoCard(
                       title: 'Restantes',
-                      subtitle: '${fase['restantes']} días',
+                      subtitle: '$restantes días',
                       icon: Icons.calendar_today,
                     ),
                   ],
@@ -153,12 +110,12 @@ class _ResumenFasePacientePantallaState
                   children: [
                     _buildInfoCard(
                       title: 'Fecha inicio',
-                      subtitle: fase['fechaInicio'],
+                      subtitle: fechaInicio,
                       icon: Icons.flag,
                     ),
                     _buildInfoCard(
                       title: 'Fecha fin',
-                      subtitle: fase['fechaFin'],
+                      subtitle: fechaFin,
                       icon: Icons.check_circle,
                     ),
                   ],

@@ -83,4 +83,24 @@ class TratamientoRepositoryImpl implements TratamientoRepository {
     await insertarMedicacionF2(medicacionF2Actualizada);
     await insertarSeguimiento(seguimientoActualizado);
   }
+
+  @override
+  Future<TratamientoPaciente> obtenerTratamientoActivo(int idPaciente) async {
+    final data =
+        await supabase
+            .from('tratamiento_paciente')
+            .select()
+            .eq('id_paciente', idPaciente)
+            .eq(
+              'estado',
+              'En curso',
+            ) // si usas un campo para marcar el tratamiento activo
+            .maybeSingle();
+
+    if (data == null) {
+      throw Exception('No se encontró tratamiento activo para el paciente.');
+    }
+
+    return TratamientoPacienteModel.fromMap(data);
+  }
 }

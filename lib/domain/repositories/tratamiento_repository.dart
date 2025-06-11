@@ -8,6 +8,7 @@ abstract class TratamientoRepository {
   Future<void> insertarMedicacionF1(MedicacionPacienteF1 medicacion);
   Future<void> insertarMedicacionF2(MedicacionPacienteF2 medicacion);
   Future<void> insertarSeguimiento(SeguimientoPaciente seguimiento);
+  Future<TratamientoPaciente> obtenerTratamientoActivo(int idPaciente);
 
   Future<void> iniciarTratamientoCompleto({
     required TratamientoPaciente tratamiento,

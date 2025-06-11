@@ -37,19 +37,27 @@ class LoginController {
       );
 
       final usuario = await usuarioRepo.iniciarSesion(email, password);
+
+      if (usuario.id == null) {
+        throw Exception('No se pudo obtener el ID del usuario.');
+      }
+
       await SessionController().inicializarUsuarioActual(usuario);
+      debugPrint(
+        '✅ Usuario cargado en sesión: ID=${usuario.id}, Nombre=${usuario.nombre}',
+      );
 
       Navigator.of(context).pop(); // Cierra el diálogo
       Navigator.pushReplacementNamed(context, AppRoutes.inicio);
     } on AuthException catch (e) {
-      Navigator.of(context).pop(); // Cierra el diálogo si falla
+      Navigator.of(context).pop();
       debugPrint('❌ Auth error: ${e.message}');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Correo o contraseña incorrectos')),
       );
     } catch (e) {
-      Navigator.of(context).pop(); // Cierra el diálogo si falla
-      debugPrint('❌ Otro error: $e');
+      Navigator.of(context).pop();
+      debugPrint('❌ Error inesperado en login: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ocurrió un error. Intenta nuevamente.')),
       );

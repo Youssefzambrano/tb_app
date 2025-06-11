@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../../controllers/dashboard_peciente_controller.dart';
 import '../../tratamiento/pages/registrar_toma_pantalla.dart';
 import '../../autochequeo/pages/modulo_autochequeo_pantalla.dart';
 import '../../tratamiento/pages/resumen_dosis_paciente_pantalla.dart';
@@ -9,8 +11,31 @@ import '../../legal/pages/terminos_condiciones_pantalla.dart';
 import '../../educativo/modulo_educativo_pantalla.dart';
 import '../../../controllers/session_controller.dart';
 
-class InicioUsuarioPantalla extends StatelessWidget {
+class InicioUsuarioPantalla extends StatefulWidget {
   const InicioUsuarioPantalla({super.key});
+
+  @override
+  State<InicioUsuarioPantalla> createState() => _InicioUsuarioPantallaState();
+}
+
+class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final id = SessionController().idUsuario;
+      debugPrint(
+        '🧠 ID del usuario en sesión: ${SessionController().idUsuario}',
+      );
+      if (id != null) {
+        final controller = Provider.of<DashboardPacienteController>(
+          context,
+          listen: false,
+        );
+        controller.cargarResumen(id);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +78,7 @@ class InicioUsuarioPantalla extends StatelessWidget {
               children: [
                 Text(
                   SessionController().nombreUsuario,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black,
                     fontFamily: 'Outfit',
                     fontSize: 18,
@@ -128,6 +153,9 @@ class InicioUsuarioPantalla extends StatelessWidget {
   }
 
   Widget _buildStatePanel(BuildContext context) {
+    final controller = Provider.of<DashboardPacienteController>(context);
+    final resumen = controller.resumen;
+
     return Center(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.92,
@@ -160,39 +188,44 @@ class InicioUsuarioPantalla extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _stateItem(
-                  context,
-                  title: 'Dosis',
-                  value: '12/180',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => const ResumenDosisPacientePantalla(),
-                      ),
-                    );
-                  },
-                ),
-                _stateItem(
-                  context,
-                  title: 'Fase',
-                  value: 'Intensiva',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => const ResumenFasePacientePantalla(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+            if (controller.cargando)
+              const CircularProgressIndicator()
+            else if (resumen == null)
+              const Text('No hay datos disponibles')
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _stateItem(
+                    context,
+                    title: 'Dosis',
+                    value: '${resumen.dosisTomadas}/${resumen.dosisTotales}',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => const ResumenDosisPacientePantalla(),
+                        ),
+                      );
+                    },
+                  ),
+                  _stateItem(
+                    context,
+                    title: 'Fase',
+                    value: resumen.faseActual,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => const ResumenFasePacientePantalla(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
           ],
         ),
       ),

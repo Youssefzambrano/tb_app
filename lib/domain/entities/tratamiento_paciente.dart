@@ -12,6 +12,8 @@ class TratamientoPaciente {
   final int dosisPendientes;
   final bool fase1IntensivaActiva;
   final bool fase2ContinuacionActiva;
+  final DateTime? fechaInicioFase1;
+  final DateTime? fechaInicioFase2;
 
   const TratamientoPaciente({
     required this.id,
@@ -27,5 +29,7 @@ class TratamientoPaciente {
     required this.dosisPendientes,
     required this.fase1IntensivaActiva,
     required this.fase2ContinuacionActiva,
+    required this.fechaInicioFase1,
+    required this.fechaInicioFase2,
   });
 }

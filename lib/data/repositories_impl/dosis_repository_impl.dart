@@ -33,4 +33,41 @@ class DosisRepositoryImpl implements DosisRepository {
 
     return response.length;
   }
+
+  @override
+  Future<Dosis?> obtenerUltimaDosis(int idPaciente) async {
+    final data =
+        await supabase
+            .from('dosis')
+            .select('*, id_tratamiento_paciente(id_paciente)')
+            .eq('id_tratamiento_paciente.id_paciente', idPaciente)
+            .order('fecha_hora_toma', ascending: false)
+            .limit(1)
+            .maybeSingle();
+
+    if (data == null) return null;
+    try {
+      return DosisModel.fromMap(data);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> existeDosisHoy(int idPaciente) async {
+    final now = DateTime.now();
+    final inicioDia = DateTime(now.year, now.month, now.day);
+    final finDia = inicioDia
+        .add(const Duration(days: 1))
+        .subtract(const Duration(seconds: 1));
+
+    final response = await supabase
+        .from('dosis')
+        .select('id, id_tratamiento_paciente(id_paciente)')
+        .gte('fecha_hora_toma', inicioDia.toIso8601String())
+        .lte('fecha_hora_toma', finDia.toIso8601String())
+        .eq('id_tratamiento_paciente.id_paciente', idPaciente);
+
+    return response.isNotEmpty;
+  }
 }

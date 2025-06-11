@@ -15,6 +15,8 @@ class TratamientoPacienteModel extends TratamientoPaciente {
     required int dosisPendientes,
     required bool fase1IntensivaActiva,
     required bool fase2ContinuacionActiva,
+    DateTime? fechaInicioFase1,
+    DateTime? fechaInicioFase2,
   }) : super(
          id: id,
          idPaciente: idPaciente,
@@ -29,6 +31,8 @@ class TratamientoPacienteModel extends TratamientoPaciente {
          dosisPendientes: dosisPendientes,
          fase1IntensivaActiva: fase1IntensivaActiva,
          fase2ContinuacionActiva: fase2ContinuacionActiva,
+         fechaInicioFase1: fechaInicioFase1,
+         fechaInicioFase2: fechaInicioFase2,
        );
 
   factory TratamientoPacienteModel.fromMap(Map<String, dynamic> map) {
@@ -49,6 +53,14 @@ class TratamientoPacienteModel extends TratamientoPaciente {
       dosisPendientes: map['dosis_pendientes'],
       fase1IntensivaActiva: map['fase1_intensiva_activa'],
       fase2ContinuacionActiva: map['fase2_continuacion_activa'],
+      fechaInicioFase1:
+          map['fecha_inicio_fase1'] != null
+              ? DateTime.parse(map['fecha_inicio_fase1'])
+              : null,
+      fechaInicioFase2:
+          map['fecha_inicio_fase2'] != null
+              ? DateTime.parse(map['fecha_inicio_fase2'])
+              : null,
     );
   }
 
@@ -67,6 +79,8 @@ class TratamientoPacienteModel extends TratamientoPaciente {
       dosisPendientes: entity.dosisPendientes,
       fase1IntensivaActiva: entity.fase1IntensivaActiva,
       fase2ContinuacionActiva: entity.fase2ContinuacionActiva,
+      fechaInicioFase1: entity.fechaInicioFase1,
+      fechaInicioFase2: entity.fechaInicioFase2,
     );
   }
 
@@ -84,6 +98,8 @@ class TratamientoPacienteModel extends TratamientoPaciente {
       'dosis_pendientes': dosisPendientes,
       'fase1_intensiva_activa': fase1IntensivaActiva,
       'fase2_continuacion_activa': fase2ContinuacionActiva,
+      'fecha_inicio_fase1': fechaInicioFase1?.toIso8601String(),
+      'fecha_inicio_fase2': fechaInicioFase2?.toIso8601String(),
     };
 
     if (id != null) {
