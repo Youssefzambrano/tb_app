@@ -43,7 +43,7 @@ class _ModuloEducativoPantallaState extends State<ModuloEducativoPantalla> {
       case 'recomendaciones_tratamiento':
         return 'Recomendaciones';
       case 'evitar_contagio':
-        return 'Cómo evitar contagios';
+        return 'evitar contagios';
       default:
         return key;
     }
@@ -92,9 +92,9 @@ class _ModuloEducativoPantallaState extends State<ModuloEducativoPantalla> {
                     'Aprende sobre tu tratamiento',
                     style: TextStyle(
                       fontFamily: 'Manrope',
-                      fontSize: 28,
+                      fontSize: 30,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF67BF63),
+                      color: const Color.fromARGB(255, 0, 0, 0),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -156,38 +156,34 @@ class _ModuloEducativoPantallaState extends State<ModuloEducativoPantalla> {
                                 ),
                               ),
                               const SizedBox(height: 18),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF67BF63),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 32,
-                                      vertical: 22,
-                                    ),
-                                    textStyle: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Manrope',
-                                    ),
-                                    elevation: 6,
-                                    minimumSize: const Size.fromHeight(60),
-                                  ),
-                                  icon: const Icon(
-                                    Icons.menu_book_outlined,
-                                    size: 32,
-                                  ),
-                                  label: const Text('Ver información'),
-                                  onPressed:
-                                      () => mostrarModalBloqueEducativo(
-                                        context,
-                                        bloque,
-                                        titulo,
+                              Center(
+                                child: SizedBox(
+                                  width: 220, // Ancho fijo, puedes ajustar
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF67BF63),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 20,
+                                      ),
+                                      textStyle: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Manrope',
+                                      ),
+                                      elevation: 6,
+                                    ),
+                                    child: const Text('Ver información'),
+                                    onPressed:
+                                        () => mostrarModalBloqueEducativo(
+                                          context,
+                                          bloque,
+                                          titulo,
+                                        ),
+                                  ),
                                 ),
                               ),
                             ],

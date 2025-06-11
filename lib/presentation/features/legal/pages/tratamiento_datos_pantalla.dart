@@ -40,11 +40,13 @@ class TratamientoDatosPantalla extends StatelessWidget {
                   ],
                 ),
                 child: const Text(
-                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '
-                  'Phasellus imperdiet, nulla et dictum interdum, nisi lorem egestas odio, '
-                  'vitae scelerisque enim ligula venenatis dolor. Maecenas nisl est, ultrices nec congue eget, '
-                  'auctor vitae massa. Lorem ipsum dolor sit amet, consectetur adipiscing elit. '
-                  'Suspendisse euismod, nisi vel consectetur euismod, nisl nunc.',
+                  'Evita TB se compromete a proteger la privacidad de sus usuarios. '
+                  'Los datos personales y de salud recopilados se utilizan exclusivamente para el seguimiento del tratamiento '
+                  'de la tuberculosis y fines educativos dentro de la aplicación. No se comparten con terceros sin autorización previa. '
+                  'El almacenamiento de la información se realiza con medidas básicas de seguridad, y su uso está limitado al personal autorizado. '
+                  'Al aceptar estas políticas, el usuario consiente el tratamiento temporal de sus datos según la Ley 1581 de 2012 de Colombia. '
+                  'Esta es una versión provisional mientras se publica la política oficial. '
+                  'En cualquier momento, el usuario puede solicitar la eliminación de sus datos a través de los medios de contacto dispuestos.',
                   style: TextStyle(
                     fontSize: 16,
                     fontFamily: 'Manrope',

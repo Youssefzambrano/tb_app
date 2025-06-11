@@ -27,11 +27,12 @@ class TerminosCondicionesPantalla extends StatelessWidget {
               ),
               SizedBox(height: 20),
               Text(
-                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '
-                'Phasellus imperdiet, nulla et dictum interdum, nisi lorem egestas odio, '
-                'vitae scelerisque enim ligula venenatis dolor. Maecenas nisl est, ultrices nec congue eget, '
-                'auctor vitae massa. Lorem ipsum dolor sit amet, consectetur adipiscing elit. '
-                'Suspendisse euismod, nisi vel consectetur euismod, nisl nunc.',
+                'Evita TB recopila algunos datos personales y de salud para ayudarte a seguir tu tratamiento '
+                'de forma segura y personalizada. Esta información solo se usa dentro de la app y no se comparte '
+                'con terceros. Al usar esta aplicación, aceptas temporalmente que tus datos sean tratados con fines '
+                'médicos y educativos. Esta es una versión provisional del aviso de privacidad, mientras se actualizan '
+                'nuestras políticas conforme a la Ley 1581 de 2012 de Colombia. Tus datos se almacenan con medidas '
+                'básicas de seguridad. Si no estás de acuerdo, por favor no continúes con el uso de la aplicación.',
                 textAlign: TextAlign.justify,
                 style: TextStyle(
                   fontSize: 16,
