@@ -65,7 +65,7 @@
     },
     {
       "titulo": "Hábitos saludables adicionales",
-      "contenido": "1. Consumir alimentos ricos en calcio y vitamina D\n2. Solo consumir cítricos 3 horas después de tomar el medicamento\n3. Comer frutas y verduras amarillas\n4. Evitar ayunos largos\n5. Tomar de 10 a 12 vasos de agua diarios",
+      "contenido": "6. Consumir alimentos ricos en calcio y vitamina D\n7. Solo consumir cítricos 3 horas después de tomar el medicamento\n8. Comer frutas y verduras amarillas\n9. Evitar ayunos largos\n10. Tomar de 10 a 12 vasos de agua diarios",
       "imagen": "assets/images_modulo_educativo/Alimento2.png"
     }
   ],
@@ -118,7 +118,7 @@
     },
     {
       "titulo": "Otras recomendaciones importantes",
-      "contenido": "1. Evita recibir visitas de niños y personas con defensas bajas.\n2. Bota el papel con flemas en una bolsa y mantenla cerrada.\n3. Busca apoyo de tu familia para cumplir el tratamiento.\n4. Lávate las manos luego de toser o estornudar.",
+      "contenido": "6. Evita recibir visitas de niños y personas con defensas bajas.\n7. Bota el papel con flemas en una bolsa y mantenla cerrada.\n8. Busca apoyo de tu familia para cumplir el tratamiento.\n9. Lávate las manos luego de toser o estornudar.",
       "imagen": "assets/images_modulo_educativo/Recomendaciones_contagios2.png"
     }
   ]
