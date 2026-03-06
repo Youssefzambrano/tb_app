@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../domain/usecases/iniciar_sesion_usecase.dart';
-import '../../data/repositories_impl/usuario_repository_impl.dart';
-import '../../data/datasources/remote/supabase/auth_supabase_service.dart';
+import '../../data/models/usuario_model.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/dialogo_cargando.dart';
 import 'session_controller.dart';
@@ -14,7 +12,6 @@ class LoginController {
   LoginController()
     : iniciarSesionUseCase = IniciarSesionUseCase(
         supabase: Supabase.instance.client,
-        storage: const FlutterSecureStorage(),
       );
 
   Future<void> iniciarSesion({
@@ -29,38 +26,50 @@ class LoginController {
     );
 
     try {
+      debugPrint('🔐 [1] Llamando signInWithPassword...');
       await iniciarSesionUseCase(email: email, password: password);
+      debugPrint('✅ [2] Auth exitoso. Consultando tabla usuario...');
 
-      final usuarioRepo = UsuarioRepositoryImpl(
-        supabase: Supabase.instance.client,
-        authService: AuthSupabaseService(),
-      );
+      final data =
+          await Supabase.instance.client
+              .from('usuario')
+              .select()
+              .eq('correo_electronico', email)
+              .single();
+      debugPrint('✅ [3] Usuario encontrado en BD: $data');
 
-      final usuario = await usuarioRepo.iniciarSesion(email, password);
+      final usuario = UsuarioModel.fromMap(data);
+      debugPrint('✅ [4] UsuarioModel creado: ID=${usuario.id}');
 
       if (usuario.id == null) {
         throw Exception('No se pudo obtener el ID del usuario.');
       }
 
       await SessionController().inicializarUsuarioActual(usuario);
-      debugPrint(
-        '✅ Usuario cargado en sesión: ID=${usuario.id}, Nombre=${usuario.nombre}',
-      );
+      debugPrint('✅ [5] Sesión inicializada. Navegando...');
 
-      Navigator.of(context).pop(); // Cierra el diálogo
+      if (!context.mounted) {
+        debugPrint('⚠️ [6] context no montado, no se navega');
+        return;
+      }
+      Navigator.of(context).pop();
       Navigator.pushReplacementNamed(context, AppRoutes.inicio);
+      debugPrint('✅ [7] Navegación completada');
     } on AuthException catch (e) {
+      debugPrint('❌ [AUTH ERROR] ${e.message} (statusCode: ${e.statusCode})');
+      if (!context.mounted) return;
       Navigator.of(context).pop();
-      debugPrint('❌ Auth error: ${e.message}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Correo o contraseña incorrectos')),
-      );
-    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Auth error: ${e.message}')));
+    } catch (e, stack) {
+      debugPrint('❌ [ERROR INESPERADO] $e');
+      debugPrint('📋 Stack: $stack');
+      if (!context.mounted) return;
       Navigator.of(context).pop();
-      debugPrint('❌ Error inesperado en login: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ocurrió un error. Intenta nuevamente.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 }

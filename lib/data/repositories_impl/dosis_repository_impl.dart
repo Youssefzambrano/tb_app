@@ -8,39 +8,54 @@ class DosisRepositoryImpl implements DosisRepository {
 
   DosisRepositoryImpl({required this.supabase});
 
+  Future<int?> _obtenerIdTratamientoActivo(int idPaciente) async {
+    final data =
+        await supabase
+            .from('tratamiento_paciente')
+            .select('id')
+            .eq('id_paciente', idPaciente)
+            .eq('estado', 'En curso')
+            .maybeSingle();
+    return data?['id'] as int?;
+  }
+
   @override
   Future<void> registrarDosis(Dosis dosis) async {
     final model = DosisModel(
-      id: null, // será descartado si es generado automáticamente
+      id: null,
       idTratamientoPaciente: dosis.idTratamientoPaciente,
       idMedicamento: dosis.idMedicamento,
       fechaHoraToma: dosis.fechaHoraToma,
       estado: dosis.estado,
     );
-
     final map = model.toMap();
-    map.remove('id'); // No incluir el id si es autogenerado
-
+    map.remove('id');
     await supabase.from('dosis').insert(map);
   }
 
   @override
   Future<int> contarDosisPorUsuario(int idUsuario) async {
+    final idTratamiento = await _obtenerIdTratamientoActivo(idUsuario);
+    if (idTratamiento == null) return 0;
+
     final response = await supabase
         .from('dosis')
-        .select('id_tratamiento_paciente!inner(id_paciente)')
-        .eq('id_tratamiento_paciente.id_paciente', idUsuario);
+        .select('id')
+        .eq('id_tratamiento_paciente', idTratamiento);
 
     return response.length;
   }
 
   @override
   Future<Dosis?> obtenerUltimaDosis(int idPaciente) async {
+    final idTratamiento = await _obtenerIdTratamientoActivo(idPaciente);
+    if (idTratamiento == null) return null;
+
     final data =
         await supabase
             .from('dosis')
-            .select('*, id_tratamiento_paciente(id_paciente)')
-            .eq('id_tratamiento_paciente.id_paciente', idPaciente)
+            .select('*')
+            .eq('id_tratamiento_paciente', idTratamiento)
             .order('fecha_hora_toma', ascending: false)
             .limit(1)
             .maybeSingle();
@@ -55,6 +70,9 @@ class DosisRepositoryImpl implements DosisRepository {
 
   @override
   Future<bool> existeDosisHoy(int idPaciente) async {
+    final idTratamiento = await _obtenerIdTratamientoActivo(idPaciente);
+    if (idTratamiento == null) return false;
+
     final now = DateTime.now();
     final inicioDia = DateTime(now.year, now.month, now.day);
     final finDia = inicioDia
@@ -63,10 +81,10 @@ class DosisRepositoryImpl implements DosisRepository {
 
     final response = await supabase
         .from('dosis')
-        .select('id, id_tratamiento_paciente(id_paciente)')
+        .select('id')
+        .eq('id_tratamiento_paciente', idTratamiento)
         .gte('fecha_hora_toma', inicioDia.toIso8601String())
-        .lte('fecha_hora_toma', finDia.toIso8601String())
-        .eq('id_tratamiento_paciente.id_paciente', idPaciente);
+        .lte('fecha_hora_toma', finDia.toIso8601String());
 
     return response.isNotEmpty;
   }

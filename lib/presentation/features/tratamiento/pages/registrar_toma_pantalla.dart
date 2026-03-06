@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../controllers/registrar_toma_controller.dart';
+import '../../../controllers/dashboard_peciente_controller.dart';
 
 class RegistrarTomaPantalla extends StatelessWidget {
   const RegistrarTomaPantalla({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
+    final controller = Provider.of<DashboardPacienteController>(context);
+    final resumen = controller.resumen;
+
+    final now = DateTime.now();
+    final fechaStr =
+        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+    final fase = resumen?.faseActual ?? '...';
+    final medicamento = resumen?.medicamentoActual ?? '...';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registrar Toma'),
-        backgroundColor: const Color.fromARGB(255, 104, 191, 99),
+        backgroundColor: const Color(0xFF67BF63),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -23,7 +32,7 @@ class RegistrarTomaPantalla extends StatelessWidget {
               const SizedBox(height: 16),
               _buildEvitaSection(),
               const SizedBox(height: 24),
-              _buildTomaInfo(),
+              _buildTomaInfo(fase, medicamento, fechaStr),
               const SizedBox(height: 24),
               _buildRegistrarButton(context),
             ],
@@ -47,7 +56,7 @@ class RegistrarTomaPantalla extends StatelessWidget {
     );
   }
 
-  Widget _buildTomaInfo() {
+  Widget _buildTomaInfo(String fase, String medicamento, String fecha) {
     return Center(
       child: Container(
         width: 350,
@@ -69,11 +78,11 @@ class RegistrarTomaPantalla extends StatelessWidget {
         ),
         child: Column(
           children: [
-            _infoItem('Fase', '1'),
+            _infoItem('Fase', fase),
             const SizedBox(height: 12),
-            _infoItem('Medicamento', 'Evitarol 500mg'),
+            _infoItem('Medicamento', medicamento),
             const SizedBox(height: 12),
-            _infoItem('Fecha', '28/04/2025'),
+            _infoItem('Fecha', fecha),
           ],
         ),
       ),

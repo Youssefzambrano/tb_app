@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../controllers/session_controller.dart';
 import '../../auth/pages/cambiar_contrasena_pantalla.dart';
 import '../../legal/pages/tratamiento_datos_pantalla.dart';
+import 'editar_perfil_pantalla.dart';
 
 class PerfilPantalla extends StatelessWidget {
   const PerfilPantalla({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
+    final session = SessionController();
+    final nombre = session.nombreUsuario;
+    final correo = session.correoUsuario;
+    final initials = nombre.isNotEmpty
+        ? nombre.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join()
+        : '?';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Perfil'),
-        backgroundColor: const Color.fromARGB(255, 104, 191, 99),
+        backgroundColor: const Color(0xFF67BF63),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -22,29 +29,35 @@ class PerfilPantalla extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 24),
-            // Sección de bienvenida/avatar
             Center(
               child: Column(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 50,
-                    backgroundImage: AssetImage(
-                      'assets/images/evita_feliz.png',
+                    backgroundColor: const Color(0xFF67BF63),
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Outfit',
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Nombre del Usuario',
-                    style: TextStyle(
+                  Text(
+                    nombre,
+                    style: const TextStyle(
                       fontFamily: 'Manrope',
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'usuario@email.com',
-                    style: TextStyle(
+                  Text(
+                    correo,
+                    style: const TextStyle(
                       fontFamily: 'Manrope',
                       fontSize: 16,
                       color: Colors.grey,
@@ -60,7 +73,12 @@ class PerfilPantalla extends StatelessWidget {
               title: 'Editar Perfil',
               onTap: () {
                 HapticFeedback.lightImpact();
-                Navigator.pushNamed(context, '/editar_perfil');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const EditarPerfilPantalla(),
+                  ),
+                );
               },
             ),
             _buildProfileOption(

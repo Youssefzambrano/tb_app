@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../controllers/session_controller.dart';
 
 class CambiarContrasenaPantalla extends StatefulWidget {
   const CambiarContrasenaPantalla({super.key});
@@ -18,8 +20,7 @@ class _CambiarContrasenaPantallaState extends State<CambiarContrasenaPantalla> {
   bool _visibleActual = false;
   bool _visibleNueva = false;
   bool _visibleConfirmar = false;
-
-  final String _contrasenaAlmacenada = '123456';
+  bool _cargando = false;
 
   @override
   void dispose() {
@@ -29,21 +30,51 @@ class _CambiarContrasenaPantallaState extends State<CambiarContrasenaPantalla> {
     super.dispose();
   }
 
-  void _cambiarContrasena() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> _cambiarContrasena() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _cargando = true);
+
+    try {
+      final email = SessionController().correoUsuario;
+      final actual = _actualController.text;
       final nueva = _nuevaController.text;
 
-      debugPrint('Contraseña cambiada exitosamente a: $nueva');
-      HapticFeedback.lightImpact();
+      // 1. Verificar contraseña actual re-autenticando
+      await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: actual,
+      );
 
+      // 2. Actualizar contraseña
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(password: nueva),
+      );
+
+      HapticFeedback.lightImpact();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Contraseña actualizada correctamente.'),
           backgroundColor: Colors.green,
         ),
       );
-
       Navigator.pop(context);
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      final msg = e.message.contains('Invalid login')
+          ? 'Contraseña actual incorrecta.'
+          : e.message;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg), backgroundColor: Colors.red),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _cargando = false);
     }
   }
 
@@ -96,9 +127,6 @@ class _CambiarContrasenaPantallaState extends State<CambiarContrasenaPantalla> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo requerido';
-                        }
-                        if (value != _contrasenaAlmacenada) {
-                          return 'Contraseña actual incorrecta';
                         }
                         return null;
                       },
@@ -154,7 +182,7 @@ class _CambiarContrasenaPantallaState extends State<CambiarContrasenaPantalla> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _cambiarContrasena,
+                  onPressed: _cargando ? null : _cambiarContrasena,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF67BF63),
                     foregroundColor: Colors.white,
@@ -162,10 +190,19 @@ class _CambiarContrasenaPantallaState extends State<CambiarContrasenaPantalla> {
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
-                  child: const Text(
-                    'Cambiar contraseña',
-                    style: TextStyle(fontFamily: 'Manrope', fontSize: 18),
-                  ),
+                  child: _cargando
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'Cambiar contraseña',
+                          style: TextStyle(fontFamily: 'Manrope', fontSize: 18),
+                        ),
                 ),
               ),
             ],
