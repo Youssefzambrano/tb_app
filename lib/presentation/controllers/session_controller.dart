@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/usuario.dart';
 import '../../domain/usecases/cerrar_sesion_usecase.dart';
 import '../../widgets/dialogo_cargando.dart';
+import '../../routes/app_routes.dart';
 
 class SessionController {
   // Singleton
@@ -49,4 +50,7 @@ class SessionController {
   int? get idUsuario => usuarioActual?.id;
   String get nombreUsuario => usuarioActual?.nombre ?? 'Usuario';
   String get correoUsuario => usuarioActual?.correoElectronico ?? '';
+  String get nivelAcceso => usuarioActual?.nivelAcceso ?? 'Basico';
+  bool get esEnfermero => nivelAcceso.toLowerCase() == 'enfermero';
+  String get rutaInicioPorRol => esEnfermero ? AppRoutes.inicioEnfermero : AppRoutes.inicio;
 }

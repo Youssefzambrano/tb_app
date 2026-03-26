@@ -4,7 +4,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../domain/usecases/iniciar_sesion_usecase.dart';
 import '../../data/repositories_impl/usuario_repository_impl.dart';
 import '../../data/datasources/remote/supabase/auth_supabase_service.dart';
-import '../../routes/app_routes.dart';
 import '../../widgets/dialogo_cargando.dart';
 import 'session_controller.dart';
 
@@ -25,7 +24,7 @@ class LoginController {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const DialogoCargando(mensaje: 'Iniciando sesión...'),
+      builder: (_) => const DialogoCargando(mensaje: 'Iniciando sesion...'),
     );
 
     try {
@@ -44,22 +43,23 @@ class LoginController {
 
       await SessionController().inicializarUsuarioActual(usuario);
       debugPrint(
-        '✅ Usuario cargado en sesión: ID=${usuario.id}, Nombre=${usuario.nombre}',
+        'Usuario cargado en sesion: ID=${usuario.id}, Nombre=${usuario.nombre}, Rol=${usuario.nivelAcceso}',
       );
 
-      Navigator.of(context).pop(); // Cierra el diálogo
-      Navigator.pushReplacementNamed(context, AppRoutes.inicio);
+      Navigator.of(context).pop();
+      final rutaInicio = SessionController().rutaInicioPorRol;
+      Navigator.pushReplacementNamed(context, rutaInicio);
     } on AuthException catch (e) {
       Navigator.of(context).pop();
-      debugPrint('❌ Auth error: ${e.message}');
+      debugPrint('Auth error: ${e.message}');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Correo o contraseña incorrectos')),
+        const SnackBar(content: Text('Correo o contrasena incorrectos')),
       );
     } catch (e) {
       Navigator.of(context).pop();
-      debugPrint('❌ Error inesperado en login: $e');
+      debugPrint('Error inesperado en login: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ocurrió un error. Intenta nuevamente.')),
+        const SnackBar(content: Text('Ocurrio un error. Intenta nuevamente.')),
       );
     }
   }

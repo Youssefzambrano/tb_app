@@ -6,6 +6,8 @@ import '../../../../domain/usecases/registrar_usuario_usecase.dart';
 import '../../../../data/repositories_impl/usuario_repository_impl.dart';
 import '../../../../data/datasources/remote/supabase/auth_supabase_service.dart';
 import '../../../../domain/usecases/registrar_paciente_usecase.dart';
+import '../../../../domain/usecases/asignar_enfermero_automatico_usecase.dart';
+import '../../../../data/repositories_impl/asignacion_enfermero_repository_impl.dart';
 import '../../../../data/repositories_impl/paciente_repository_impl.dart';
 
 class CompletarPerfilPantalla extends StatefulWidget {
@@ -69,6 +71,10 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
         PacienteRepositoryImpl(supabase: Supabase.instance.client),
       );
 
+      final asignarEnfermeroUseCase = AsignarEnfermeroAutomaticoUseCase(
+        AsignacionEnfermeroRepositoryImpl(supabase: Supabase.instance.client),
+      );
+
       try {
         final usuario = await registrarUsuarioUseCase(
           nombre: widget.nombre,
@@ -86,13 +92,36 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
           telefonoContacto: _telefonoEmergenciaController.text.trim(),
         );
 
+        String? nombreEnfermeroAsignado;
+        String? mensajeAsignacion;
+        try {
+          final asignacion = await asignarEnfermeroUseCase(idPaciente: usuario.id);
+          nombreEnfermeroAsignado = asignacion?.nombreEnfermero;
+          if (nombreEnfermeroAsignado == null ||
+              nombreEnfermeroAsignado.trim().isEmpty) {
+            mensajeAsignacion =
+                'Tu perfil fue creado correctamente. Te asignaremos un enfermero pronto.';
+          }
+        } catch (e) {
+          // No bloquea el registro del paciente si la asignacion falla.
+          nombreEnfermeroAsignado = null;
+          mensajeAsignacion =
+              'Tu perfil fue creado, pero no se pudo asignar enfermero en este momento. Error: $e';
+        }
+
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const PerfilCompletadoPantalla(),
+            builder:
+                (context) => PerfilCompletadoPantalla(
+                  nombreEnfermero: nombreEnfermeroAsignado,
+                  mensajeAsignacion: mensajeAsignacion,
+                ),
           ),
         );
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al guardar perfil: ${e.toString()}')),
         );
@@ -159,7 +188,7 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
                       Column(
                         children: [
                           DropdownButtonFormField<String>(
-                            value: _tipoDocumento,
+                            initialValue: _tipoDocumento,
                             decoration: const InputDecoration(
                               labelText: 'Tipo de documento',
                               border: OutlineInputBorder(),
@@ -223,7 +252,7 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            value: _genero,
+                            initialValue: _genero,
                             decoration: const InputDecoration(
                               labelText: 'Género',
                               border: OutlineInputBorder(),
