@@ -21,8 +21,9 @@ class ResumenDosisPacientePantalla extends StatelessWidget {
       );
     }
 
-    final double progreso = resumen.dosisTomadas / resumen.dosisTotales;
-    final ultimaDosis = resumen.ultimaDosis ?? DateTime.now();
+    final double progreso = resumen.dosisTotales > 0
+        ? resumen.dosisTomadas / resumen.dosisTotales
+        : 0.0;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -38,7 +39,7 @@ class ResumenDosisPacientePantalla extends StatelessWidget {
           // [Encabezado con resumen]
           _buildHeader(resumen, progreso),
           // [Contenido con detalles]
-          _buildDetails(resumen, ultimaDosis),
+          _buildDetails(resumen),
         ],
       ),
     );
@@ -99,7 +100,12 @@ class ResumenDosisPacientePantalla extends StatelessWidget {
     );
   }
 
-  Widget _buildDetails(DashboardPacienteResumen resumen, DateTime ultimaDosis) {
+  Widget _buildDetails(DashboardPacienteResumen resumen) {
+    final ultima = resumen.ultimaDosis;
+    final ultimaStr = ultima != null
+        ? '${ultima.day.toString().padLeft(2, '0')}/${ultima.month.toString().padLeft(2, '0')}/${ultima.year}'
+        : 'Sin dosis';
+
     return Expanded(
       child: ListView(
         padding: const EdgeInsets.all(20),
@@ -109,8 +115,7 @@ class ResumenDosisPacientePantalla extends StatelessWidget {
             children: [
               _buildInfoCard(
                 title: 'Última dosis',
-                subtitle:
-                    '${ultimaDosis.day}/${ultimaDosis.month}/${ultimaDosis.year}',
+                subtitle: ultimaStr,
                 icon: Icons.calendar_today,
               ),
               _buildInfoCard(

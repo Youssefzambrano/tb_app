@@ -1,9 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/resumen_fase_controller.dart';
+import '../../../controllers/session_controller.dart';
 
-class ResumenFasePacientePantalla extends StatelessWidget {
+class ResumenFasePacientePantalla extends StatefulWidget {
   const ResumenFasePacientePantalla({super.key});
+
+  @override
+  State<ResumenFasePacientePantalla> createState() =>
+      _ResumenFasePacientePantallaState();
+}
+
+class _ResumenFasePacientePantallaState
+    extends State<ResumenFasePacientePantalla> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = Provider.of<ResumenFaseController>(
+        context,
+        listen: false,
+      );
+
+      // ⚠️ Usa el ID real del paciente
+      controller.cargarResumen(SessionController().idUsuario!);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

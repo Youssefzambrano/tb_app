@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../data/models/usuario_model.dart';
 import '../../../controllers/dashboard_peciente_controller.dart';
 import '../../tratamiento/pages/registrar_toma_pantalla.dart';
 import '../../autochequeo/pages/modulo_autochequeo_pantalla.dart';
@@ -10,6 +12,7 @@ import '../../perfil/pages/perfil_pantalla.dart';
 import '../../legal/pages/terminos_condiciones_pantalla.dart';
 import '../../educativo/modulo_educativo_pantalla.dart';
 import '../../../controllers/session_controller.dart';
+import '../../../../services/notificaciones_service.dart';
 
 class InicioUsuarioPantalla extends StatefulWidget {
   const InicioUsuarioPantalla({super.key});
@@ -19,22 +22,102 @@ class InicioUsuarioPantalla extends StatefulWidget {
 }
 
 class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
+  bool _faltaDosisHoy = false;
+  bool _faltaChequeoSemana = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final id = SessionController().idUsuario;
-      debugPrint(
-        '🧠 ID del usuario en sesión: ${SessionController().idUsuario}',
-      );
-      if (id != null) {
-        final controller = Provider.of<DashboardPacienteController>(
-          context,
-          listen: false,
-        );
-        controller.cargarResumen(id);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _inicializar());
+  }
+
+  Future<void> _inicializar() async {
+    final session = SessionController();
+
+    // Si viene del splash con sesión activa pero sin usuario en memoria, cargarlo
+    if (session.idUsuario == null) {
+      final email = Supabase.instance.client.auth.currentUser?.email;
+      debugPrint('📥 Cargando usuario desde BD (sesión restaurada)... email=$email');
+      if (email != null) {
+        try {
+          final data = await Supabase.instance.client
+              .from('usuario')
+              .select()
+              .eq('correo_electronico', email)
+              .single();
+          final usuario = UsuarioModel.fromMap(data);
+          await session.inicializarUsuarioActual(usuario);
+          debugPrint('✅ Usuario cargado: ID=${usuario.id}');
+        } catch (e) {
+          debugPrint('❌ Error al cargar usuario: $e');
+        }
       }
+    }
+
+    final id = session.idUsuario;
+    debugPrint('🧠 ID del usuario en sesión: $id');
+    if (id != null && mounted) {
+      final controller = Provider.of<DashboardPacienteController>(
+        context,
+        listen: false,
+      );
+      controller.cargarResumen(id);
+    }
+
+    _verificarPendientes();
+    NotificacionesService.inicializar().then((_) {
+      NotificacionesService.programarNotificaciones();
+    }).catchError((e) {
+      debugPrint('⚠️ Error al inicializar notificaciones: $e');
     });
+  }
+
+  Future<void> _verificarPendientes() async {
+    final idUsuario = SessionController().idUsuario;
+    if (idUsuario == null) return;
+
+    final supabase = Supabase.instance.client;
+    final now = DateTime.now();
+    final hoyStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final inicioSemana = now.subtract(Duration(days: now.weekday - 1));
+    final semanaStr = '${inicioSemana.year}-${inicioSemana.month.toString().padLeft(2, '0')}-${inicioSemana.day.toString().padLeft(2, '0')}';
+
+    // Obtener tratamiento activo
+    final tratamiento = await supabase
+        .from('tratamiento_paciente')
+        .select('id')
+        .eq('id_paciente', idUsuario)
+        .eq('estado', 'En curso')
+        .maybeSingle();
+
+    if (tratamiento == null) return;
+    final idTratamiento = tratamiento['id'] as int;
+
+    // ¿Tomó la dosis hoy?
+    final dosisHoy = await supabase
+        .from('dosis')
+        .select('id')
+        .eq('id_tratamiento_paciente', idTratamiento)
+        .eq('estado', 'Tomada')
+        .gte('fecha_hora_toma', '${hoyStr}T00:00:00')
+        .limit(1)
+        .maybeSingle();
+
+    // ¿Hizo autochequeo esta semana?
+    final chequeoSemana = await supabase
+        .from('seguimiento_paciente')
+        .select('id')
+        .eq('id_tratamiento_paciente', idTratamiento)
+        .gte('fecha_reporte', semanaStr)
+        .limit(1)
+        .maybeSingle();
+
+    if (mounted) {
+      setState(() {
+        _faltaDosisHoy = dosisHoy == null;
+        _faltaChequeoSemana = chequeoSemana == null;
+      });
+    }
   }
 
   @override
@@ -67,59 +150,151 @@ class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
   }
 
   Widget _buildDrawer(BuildContext context) {
+    final session = SessionController();
+    final initials = session.nombreUsuario.isNotEmpty
+        ? session.nombreUsuario
+            .trim()
+            .split(' ')
+            .take(2)
+            .map((w) => w[0].toUpperCase())
+            .join()
+        : '?';
+
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: Color(0xFF67BF63)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF67BF63), Color(0xFF8BC3D9)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Row(
               children: [
-                Text(
-                  SessionController().nombreUsuario,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontFamily: 'Outfit',
-                    fontSize: 18,
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    initials,
+                    style: const TextStyle(
+                      color: Color(0xFF67BF63),
+                      fontFamily: 'Outfit',
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        session.nombreUsuario,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Outfit',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        session.correoUsuario,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontFamily: 'Manrope',
+                          fontSize: 13,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Perfil'),
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PerfilPantalla()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.description),
-            title: const Text('Términos y Condiciones'),
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TerminosCondicionesPantalla(),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              children: [
+                _drawerItem(
+                  icon: Icons.person_outline,
+                  title: 'Perfil',
+                  onTap: () {
+                    Navigator.pop(context);
+                    HapticFeedback.lightImpact();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PerfilPantalla(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+                _drawerItem(
+                  icon: Icons.description_outlined,
+                  title: 'Términos y Condiciones',
+                  onTap: () {
+                    Navigator.pop(context);
+                    HapticFeedback.lightImpact();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TerminosCondicionesPantalla(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(indent: 16, endIndent: 16),
+                _drawerItem(
+                  icon: Icons.logout,
+                  title: 'Cerrar sesión',
+                  color: Colors.red.shade400,
+                  onTap: () {
+                    Navigator.pop(context);
+                    SessionController().cerrarSesionYRedirigir(context);
+                  },
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Cerrar sesión'),
-            onTap: () {
-              SessionController().cerrarSesionYRedirigir(context);
-            },
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Text(
+              'Versión 1.0.0',
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 12,
+                color: Colors.grey.shade400,
+              ),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _drawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    final c = color ?? Colors.black87;
+    return ListTile(
+      leading: Icon(icon, color: c, size: 24),
+      title: Text(
+        title,
+        style: TextStyle(fontFamily: 'Manrope', fontSize: 15, color: c),
+      ),
+      onTap: onTap,
+      horizontalTitleGap: 8,
     );
   }
 
@@ -242,14 +417,14 @@ class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 120,
-        height: 100,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        width: 140,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
@@ -261,13 +436,17 @@ class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              value,
-              style: const TextStyle(
-                fontFamily: 'Manrope',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
             ),
           ],
@@ -285,6 +464,7 @@ class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
             context,
             title: 'Registrar Nueva Toma',
             icon: Icons.medication,
+            badge: _faltaDosisHoy,
             onTap: () {
               HapticFeedback.lightImpact();
               Navigator.push(
@@ -292,7 +472,7 @@ class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
                 MaterialPageRoute(
                   builder: (context) => const RegistrarTomaPantalla(),
                 ),
-              );
+              ).then((_) => _verificarPendientes());
             },
           ),
           const SizedBox(height: 12),
@@ -300,6 +480,7 @@ class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
             context,
             title: 'Módulo de autochequeo',
             icon: Icons.monitor_heart,
+            badge: _faltaChequeoSemana,
             onTap: () {
               HapticFeedback.lightImpact();
               Navigator.push(
@@ -307,7 +488,7 @@ class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
                 MaterialPageRoute(
                   builder: (context) => const ModuloAutochequeoPantalla(),
                 ),
-              );
+              ).then((_) => _verificarPendientes());
             },
           ),
           const SizedBox(height: 12),
@@ -335,35 +516,54 @@ class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
     required String title,
     required IconData icon,
     required VoidCallback onTap,
+    bool badge = false,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        height: 60,
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFF67BF63),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 16),
-            Icon(icon, size: 40, color: Colors.white),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontFamily: 'Manrope',
-                  fontSize: 18,
-                  color: Colors.white,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Container(
+            width: double.infinity,
+            height: 60,
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF67BF63),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 16),
+                Icon(icon, size: 40, color: Colors.white),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 18,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
+              ],
+            ),
+          ),
+        ),
+        if (badge)
+          Positioned(
+            top: 0,
+            right: 4,
+            child: Container(
+              width: 14,
+              height: 14,
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 }

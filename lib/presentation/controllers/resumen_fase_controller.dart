@@ -32,17 +32,9 @@ class ResumenFaseController extends ChangeNotifier {
     }
   }
 
-  int get diasCompletados => _resumen?.dosisTomadas ?? 0;
+  int get diasCompletados => _resumen?.diasCompletados ?? 0;
 
-  int get diasRestantes {
-    final total =
-        _resumen?.faseActual == 'Intensiva'
-            ? 56
-            : _resumen?.faseActual == 'Continuación'
-            ? 112
-            : 0;
-    return (total - (resumen?.dosisTomadas ?? 0)).clamp(0, total);
-  }
+  int get diasRestantes => _resumen?.diasRestantes ?? 0;
 
   String get fechaInicio {
     final fecha = _resumen?.fechaInicio;

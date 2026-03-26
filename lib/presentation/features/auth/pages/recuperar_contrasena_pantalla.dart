@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../data/datasources/remote/supabase/auth_supabase_service.dart';
 
 class RecuperarContrasenaPantalla extends StatefulWidget {
   const RecuperarContrasenaPantalla({super.key});
@@ -13,6 +14,7 @@ class _RecuperarContrasenaPantallaState
     extends State<RecuperarContrasenaPantalla> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
+  bool _cargando = false;
 
   @override
   void dispose() {
@@ -20,23 +22,33 @@ class _RecuperarContrasenaPantallaState
     super.dispose();
   }
 
-  void _sendRecoveryEmail() {
-    if (_formKey.currentState!.validate()) {
-      final email = _emailController.text.trim();
-      debugPrint('Enviando instrucciones de recuperación a: $email');
-      HapticFeedback.lightImpact();
+  Future<void> _sendRecoveryEmail() async {
+    if (!_formKey.currentState!.validate()) return;
 
+    setState(() => _cargando = true);
+    final email = _emailController.text.trim();
+
+    try {
+      await AuthSupabaseService().resetPassword(email);
+      HapticFeedback.lightImpact();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Se enviaron las instrucciones de recuperación al correo.',
-            style: TextStyle(color: Colors.white),
-          ),
+        const SnackBar(
+          content: Text('Se enviaron las instrucciones de recuperación al correo.'),
           backgroundColor: Colors.green,
         ),
       );
-
-      // Aquí podrías llamar a tu función de backend o SQLite si es necesario
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al enviar: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _cargando = false);
     }
   }
 
@@ -105,7 +117,7 @@ class _RecuperarContrasenaPantallaState
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _sendRecoveryEmail,
+                  onPressed: _cargando ? null : _sendRecoveryEmail,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 104, 191, 99),
                     foregroundColor: Colors.white,
@@ -113,10 +125,19 @@ class _RecuperarContrasenaPantallaState
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
-                  child: const Text(
-                    'Enviar instrucciones',
-                    style: TextStyle(fontFamily: 'Manrope', fontSize: 18),
-                  ),
+                  child: _cargando
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'Enviar instrucciones',
+                          style: TextStyle(fontFamily: 'Manrope', fontSize: 18),
+                        ),
                 ),
               ),
               const SizedBox(height: 16),

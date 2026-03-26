@@ -26,6 +26,8 @@ import '../presentation/features/autochequeo/pages/modulo_autochequeo_pantalla.d
 
 // Tratamiento
 import 'package:tb_app/presentation/features/tratamiento/pages/exito_toma_pantalla.dart';
+import 'package:tb_app/presentation/features/tratamiento/pages/fase_intensiva_terminada_pantalla.dart';
+import 'package:tb_app/presentation/features/tratamiento/pages/tratamiento_terminado_pantalla.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -41,6 +43,8 @@ class AppRoutes {
   static const perfilCompletado = '/perfil-completado';
   static const autochequeo = '/autochequeo';
   static const exitoToma = '/exito-toma';
+  static const faseIntensivaTerminada = '/fase-intensiva-terminada';
+  static const tratamientoTerminado = '/tratamiento-terminado';
 
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => const SplashScreen(),
@@ -56,5 +60,7 @@ class AppRoutes {
     perfilCompletado: (context) => const PerfilCompletadoPantalla(),
     autochequeo: (context) => const ModuloAutochequeoPantalla(),
     exitoToma: (context) => const ExitoTomaPantalla(),
+    faseIntensivaTerminada: (context) => const FaseIntensivaTerminadaPantalla(),
+    tratamientoTerminado: (context) => const TratamientoTerminadoPantalla(),
   };
 }
