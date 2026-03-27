@@ -18,6 +18,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: dashboardPacienteController),
         ChangeNotifierProvider.value(value: resumenFaseController),
+        ChangeNotifierProvider.value(value: enfermeroDashboardController),
       ],
       child: const MyApp(),
     ),

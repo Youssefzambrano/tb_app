@@ -3,10 +3,23 @@ import 'package:flutter/services.dart';
 import '../../../controllers/iniciar_tratamiento_controller_helper.dart';
 
 class PerfilCompletadoPantalla extends StatelessWidget {
-  const PerfilCompletadoPantalla({super.key});
+  final String? nombreEnfermero;
+  final String? mensajeAsignacion;
+
+  const PerfilCompletadoPantalla({
+    super.key,
+    this.nombreEnfermero,
+    this.mensajeAsignacion,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final mensaje =
+        mensajeAsignacion ??
+        ((nombreEnfermero != null && nombreEnfermero!.trim().isNotEmpty)
+            ? 'Te asignamos al enfermero(a): $nombreEnfermero. Ahora puedes continuar con tu tratamiento.'
+            : 'Tu perfil fue creado correctamente. Pronto te asignaremos un enfermero.');
+
     return Scaffold(
       backgroundColor: const Color(0xFF67BF63),
       body: SafeArea(
@@ -24,7 +37,7 @@ class PerfilCompletadoPantalla extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  '¡Perfil Completado!',
+                  'Perfil Completado',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Outfit',
@@ -34,10 +47,10 @@ class PerfilCompletadoPantalla extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Ahora puedes comenzar a usar EvitaTB y hacer seguimiento a tu tratamiento. ¡Vamos adelante! ',
+                Text(
+                  mensaje,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Manrope',
                     fontSize: 16,
                     color: Colors.white70,
@@ -56,8 +69,7 @@ class PerfilCompletadoPantalla extends StatelessWidget {
                     ),
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      IniciarTratamientoController()
-                          .iniciarTratamientoDesdeSesion(context);
+                      IniciarTratamientoController().iniciarTratamientoDesdeSesion(context);
                     },
                     child: const Text(
                       'Empezar',
