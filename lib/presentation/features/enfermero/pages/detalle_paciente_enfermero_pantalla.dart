@@ -87,7 +87,8 @@ class _DetallePacienteEnfermeroPantallaState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ElevatedButton.icon(
-          onPressed: tieneTratamiento ? () => _dialogoValidarToma(context) : null,
+          onPressed:
+              tieneTratamiento ? () => _dialogoValidarToma(context) : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF67BF63),
             foregroundColor: Colors.white,
@@ -99,8 +100,12 @@ class _DetallePacienteEnfermeroPantallaState
         const SizedBox(height: 10),
         OutlinedButton.icon(
           onPressed:
-              tieneTratamiento ? () => _dialogoRegistrarSeguimiento(context) : null,
-          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+              tieneTratamiento
+                  ? () => _dialogoRegistrarSeguimiento(context)
+                  : null,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
           icon: const Icon(Icons.assignment_turned_in_outlined),
           label: const Text('Registrar seguimiento clinico'),
         ),
@@ -123,14 +128,17 @@ class _DetallePacienteEnfermeroPantallaState
       context: context,
       builder:
           (ctx) => AlertDialog(
-                  title: const Text('Validar toma'),
-                  content: StatefulBuilder(
-                    builder:
+            title: const Text('Validar toma'),
+            content: StatefulBuilder(
+              builder:
                   (ctx, setStateDialog) => DropdownButtonFormField<String>(
-                    initialValue: estado,
+                    value: estado,
                     items: const [
                       DropdownMenuItem(value: 'Tomada', child: Text('Tomada')),
-                      DropdownMenuItem(value: 'Omitida', child: Text('Omitida')),
+                      DropdownMenuItem(
+                        value: 'Omitida',
+                        child: Text('Omitida'),
+                      ),
                     ],
                     onChanged: (value) {
                       if (value == null) return;
@@ -173,9 +181,9 @@ class _DetallePacienteEnfermeroPantallaState
       );
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo validar la toma: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('No se pudo validar la toma: $e')));
     }
   }
 
@@ -255,7 +263,8 @@ class _DetallePacienteEnfermeroPantallaState
     final idTratamiento = widget.paciente.idTratamiento;
     if (idEnfermero == null || idTratamiento == null) return;
 
-    final dosisOmitidas = int.tryParse(dosisOmitidasController.text.trim()) ?? 0;
+    final dosisOmitidas =
+        int.tryParse(dosisOmitidasController.text.trim()) ?? 0;
 
     try {
       await controller.registrarSeguimientoClinico(

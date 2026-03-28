@@ -95,7 +95,9 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
         String? nombreEnfermeroAsignado;
         String? mensajeAsignacion;
         try {
-          final asignacion = await asignarEnfermeroUseCase(idPaciente: usuario.id);
+          final asignacion = await asignarEnfermeroUseCase(
+            idPaciente: usuario.id,
+          );
           nombreEnfermeroAsignado = asignacion?.nombreEnfermero;
           if (nombreEnfermeroAsignado == null ||
               nombreEnfermeroAsignado.trim().isEmpty) {
@@ -188,7 +190,7 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
                       Column(
                         children: [
                           DropdownButtonFormField<String>(
-                            initialValue: _tipoDocumento,
+                            value: _tipoDocumento,
                             decoration: const InputDecoration(
                               labelText: 'Tipo de documento',
                               border: OutlineInputBorder(),
@@ -252,7 +254,7 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            initialValue: _genero,
+                            value: _genero,
                             decoration: const InputDecoration(
                               labelText: 'Género',
                               border: OutlineInputBorder(),

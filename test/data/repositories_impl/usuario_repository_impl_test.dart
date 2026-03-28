@@ -101,9 +101,9 @@ void main() {
   final usuarioMap = {
     'id': 1,
     'correo_electronico': 'test@test.com',
-    'contrasena': '123456',
+    'contraseña': '123456',
     'nombre': 'Kevin',
-    'fecha_nacimiento': '2000-01-01',
+    'fecha_nacimiento': '2000-01-01T00:00:00.000',
     'genero': 'Masculino',
     'direccion': 'Calle 123',
     'telefono': '3000000000',

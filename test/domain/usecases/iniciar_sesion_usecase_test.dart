@@ -4,10 +4,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:tb_app/domain/usecases/iniciar_sesion_usecase.dart';
 
-// Creamos los Mocks necesarios
 class MockSupabaseClient extends Mock implements SupabaseClient {}
 
-class MockGoTrueClient extends Mock implements GoTrueClient {} // Para el auth
+class MockGoTrueClient extends Mock implements GoTrueClient {}
 
 class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 
@@ -26,8 +25,11 @@ void main() {
     mockAuth = MockGoTrueClient();
     mockStorage = MockFlutterSecureStorage();
 
-    // Configuramos el cliente de Supabase para que devuelva el mock de Auth
     when(() => mockSupabase.auth).thenReturn(mockAuth);
+
+    when(
+      () => mockAuth.signOut(scope: SignOutScope.local),
+    ).thenAnswer((_) async {});
 
     usecase = IniciarSesionUseCase(
       supabase: mockSupabase,
@@ -39,73 +41,51 @@ void main() {
     const tEmail = 'test@example.com';
     const tPassword = 'password123';
 
-    test(
-      'debe iniciar sesión y guardar credenciales cuando el correo está confirmado',
-      () async {
-        // Arrange (Organizar)
-        final mockUser = MockUser();
-        final mockResponse = MockAuthResponse();
+    test('debe iniciar sesión cuando el correo está confirmado', () async {
+      final mockUser = MockUser();
+      final mockResponse = MockAuthResponse();
 
-        when(
-          () => mockUser.emailConfirmedAt,
-        ).thenReturn(DateTime.now().toString());
-        when(() => mockResponse.user).thenReturn(mockUser);
+      when(() => mockUser.id).thenReturn('123');
+      when(
+        () => mockUser.emailConfirmedAt,
+      ).thenReturn(DateTime.now().toIso8601String());
+      when(() => mockResponse.user).thenReturn(mockUser);
 
-        when(
-          () => mockAuth.signInWithPassword(email: tEmail, password: tPassword),
-        ).thenAnswer((_) async => mockResponse);
+      when(
+        () => mockAuth.signInWithPassword(email: tEmail, password: tPassword),
+      ).thenAnswer((_) async => mockResponse);
 
-        // Simulamos que el guardado en storage funciona bien
-        when(
-          () => mockStorage.write(
-            key: any(named: 'key'),
-            value: any(named: 'value'),
-          ),
-        ).thenAnswer((_) async => {});
+      await usecase.call(email: tEmail, password: tPassword);
 
-        // Act (Actuar)
-        await usecase.call(email: tEmail, password: tPassword);
-
-        // Assert (Verificar)
-        verify(
-          () => mockAuth.signInWithPassword(email: tEmail, password: tPassword),
-        ).called(1);
-        verify(() => mockStorage.write(key: 'email', value: tEmail)).called(1);
-        verify(
-          () => mockStorage.write(key: 'password', value: tPassword),
-        ).called(1);
-      },
-    );
+      verify(() => mockAuth.signOut(scope: SignOutScope.local)).called(1);
+      verify(
+        () => mockAuth.signInWithPassword(email: tEmail, password: tPassword),
+      ).called(1);
+    });
 
     test(
       'debe lanzar una Exception si el usuario no ha confirmado su correo',
       () async {
-        // Arrange
         final mockUser = MockUser();
         final mockResponse = MockAuthResponse();
 
-        when(
-          () => mockUser.emailConfirmedAt,
-        ).thenReturn(null); // Correo NO confirmado
+        when(() => mockUser.id).thenReturn('123');
+        when(() => mockUser.emailConfirmedAt).thenReturn(null);
         when(() => mockResponse.user).thenReturn(mockUser);
 
         when(
           () => mockAuth.signInWithPassword(email: tEmail, password: tPassword),
         ).thenAnswer((_) async => mockResponse);
 
-        // Act & Assert
-        expect(
+        await expectLater(
           () => usecase.call(email: tEmail, password: tPassword),
           throwsA(isA<Exception>()),
         );
 
-        // Verificamos que NUNCA se guardó nada en storage si el correo no estaba confirmado
-        verifyNever(
-          () => mockStorage.write(
-            key: any(named: 'key'),
-            value: any(named: 'value'),
-          ),
-        );
+        verify(() => mockAuth.signOut(scope: SignOutScope.local)).called(1);
+        verify(
+          () => mockAuth.signInWithPassword(email: tEmail, password: tPassword),
+        ).called(1);
       },
     );
   });

@@ -17,9 +17,11 @@ class IniciarSesionUseCase {
         .signInWithPassword(email: email, password: password)
         .timeout(
           const Duration(seconds: 20),
-          onTimeout: () => throw Exception(
-            'La conexión tardó demasiado. Verifica tu red e intenta de nuevo.',
-          ),
+          onTimeout:
+              () =>
+                  throw Exception(
+                    'La conexión tardó demasiado. Verifica tu red e intenta de nuevo.',
+                  ),
         );
     debugPrint('🔑 [UseCase] Completado. User: ${response.user?.id}');
 
