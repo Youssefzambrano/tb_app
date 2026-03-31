@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../inicio/pages/inicio_usuario_pantalla.dart';
-//import 'inicio_enfermero_pantalla.dart';
-import 'recuperar_contrasena_pantalla.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../../domain/usecases/iniciar_sesion_usecase.dart';
 import '../../../controllers/login_controller.dart';
+import '../../../controllers/session_controller.dart';
+import 'recuperar_contrasena_pantalla.dart';
 
 class IngresarPantalla extends StatefulWidget {
   const IngresarPantalla({super.key});
@@ -16,9 +18,22 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _loginController = LoginController();
+
+  late final LoginController _loginController;
 
   bool _passwordVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loginController = LoginController(
+      iniciarSesionUseCase: IniciarSesionUseCase(
+        supabase: Supabase.instance.client,
+      ),
+      supabase: Supabase.instance.client,
+      sessionController: SessionController(),
+    );
+  }
 
   @override
   void dispose() {
@@ -27,19 +42,18 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
     super.dispose();
   }
 
-  // ignore: unused_element
   void _signIn() {
     if (_formKey.currentState!.validate()) {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
-      debugPrint('Intentando iniciar sesión con: $email, $password');
+      _loginController.iniciarSesion(
+        context: context,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       body: SafeArea(
@@ -56,7 +70,6 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
                   borderRadius: BorderRadius.circular(32),
                   boxShadow: [
                     BoxShadow(
-                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
@@ -100,11 +113,12 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            validator:
-                                (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Campo requerido';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
@@ -131,11 +145,12 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
                                 },
                               ),
                             ),
-                            validator:
-                                (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Campo requerido';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 24),
                           SizedBox(
@@ -151,13 +166,7 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
                               ),
                               onPressed: () {
                                 HapticFeedback.lightImpact();
-                                if (_formKey.currentState!.validate()) {
-                                  _loginController.iniciarSesion(
-                                    context: context,
-                                    email: _emailController.text.trim(),
-                                    password: _passwordController.text.trim(),
-                                  );
-                                }
+                                _signIn();
                               },
                               child: const Text(
                                 'Ingresar',
