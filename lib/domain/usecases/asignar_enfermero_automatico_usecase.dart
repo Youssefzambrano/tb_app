@@ -6,9 +6,7 @@ class AsignarEnfermeroAutomaticoUseCase {
 
   AsignarEnfermeroAutomaticoUseCase(this.repository);
 
-  Future<AsignacionEnfermeroResultado?> call({
-    required int idPaciente,
-  }) async {
-    return repository.asignarEnfermeroBalanceado(idPaciente: idPaciente);
+  Future<AsignacionEnfermeroResultado?> call({required int idPaciente}) async {
+    return await repository.asignarEnfermeroBalanceado(idPaciente: idPaciente);
   }
 }
