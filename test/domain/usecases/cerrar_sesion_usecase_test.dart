@@ -1,66 +1,52 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tb_app/domain/usecases/cerrar_sesion_usecase.dart';
 
-import 'package:tb_app/domain/entities/paciente.dart';
-import 'package:tb_app/domain/repositories/paciente_repository.dart';
-import 'package:tb_app/domain/usecases/registrar_paciente_usecase.dart';
+class MockSupabaseClient extends Mock implements SupabaseClient {}
 
-class MockPacienteRepository extends Mock implements PacienteRepository {}
+class MockGoTrueClient extends Mock implements GoTrueClient {}
 
-class FakePaciente extends Fake implements Paciente {}
+class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 
 void main() {
-  late RegistrarPacienteUseCase usecase;
-  late MockPacienteRepository mockRepository;
-
-  setUpAll(() {
-    registerFallbackValue(FakePaciente());
-  });
+  late MockSupabaseClient mockSupabase;
+  late MockGoTrueClient mockAuth;
+  late MockFlutterSecureStorage mockStorage;
+  late CerrarSesionUseCase useCase;
 
   setUp(() {
-    mockRepository = MockPacienteRepository();
-    usecase = RegistrarPacienteUseCase(mockRepository);
+    mockSupabase = MockSupabaseClient();
+    mockAuth = MockGoTrueClient();
+    mockStorage = MockFlutterSecureStorage();
+
+    when(() => mockSupabase.auth).thenReturn(mockAuth);
+
+    useCase = CerrarSesionUseCase(supabase: mockSupabase, storage: mockStorage);
   });
 
-  group('RegistrarPacienteUseCase', () {
-    test('debe llamar al repository para registrar paciente', () async {
-      when(
-        () => mockRepository.registrarPaciente(any()),
-      ).thenAnswer((_) async {});
+  group('CerrarSesionUseCase', () {
+    test('cierra sesión y elimina credenciales almacenadas', () async {
+      when(() => mockAuth.signOut()).thenAnswer((_) async {});
+      when(() => mockStorage.delete(key: 'email')).thenAnswer((_) async {});
+      when(() => mockStorage.delete(key: 'password')).thenAnswer((_) async {});
 
-      await usecase(
-        idUsuario: 1,
-        nombreContacto: 'Maria',
-        telefonoContacto: '3001234567',
-      );
+      await useCase();
 
-      verify(() => mockRepository.registrarPaciente(any())).called(1);
+      verify(() => mockAuth.signOut()).called(1);
+      verify(() => mockStorage.delete(key: 'email')).called(1);
+      verify(() => mockStorage.delete(key: 'password')).called(1);
     });
 
-    test(
-      'debe construir correctamente el paciente con valores por defecto',
-      () async {
-        late Paciente pacienteCapturado;
+    test('lanza excepción si signOut falla y no borra credenciales', () async {
+      when(() => mockAuth.signOut()).thenThrow(Exception('falló signOut'));
 
-        when(() => mockRepository.registrarPaciente(captureAny())).thenAnswer((
-          invocation,
-        ) async {
-          pacienteCapturado = invocation.positionalArguments[0] as Paciente;
-        });
+      expect(() => useCase(), throwsA(isA<Exception>()));
 
-        await usecase(
-          idUsuario: 1,
-          nombreContacto: 'Maria',
-          telefonoContacto: '3001234567',
-        );
-
-        expect(pacienteCapturado.id, 1);
-        expect(pacienteCapturado.fechaDiagnostico, isNull);
-        expect(pacienteCapturado.tipoTuberculosis, 'Sensible');
-        expect(pacienteCapturado.estadoTratamiento, 'Activo');
-        expect(pacienteCapturado.nombreContactoEmergencia, 'Maria');
-        expect(pacienteCapturado.telefonoContactoEmergencia, '3001234567');
-      },
-    );
+      verify(() => mockAuth.signOut()).called(1);
+      verifyNever(() => mockStorage.delete(key: 'email'));
+      verifyNever(() => mockStorage.delete(key: 'password'));
+    });
   });
 }

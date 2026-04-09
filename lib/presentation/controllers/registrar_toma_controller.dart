@@ -9,9 +9,98 @@ import '../features/tratamiento/pages/tratamiento_terminado_pantalla.dart';
 import 'session_controller.dart';
 
 class RegistrarTomaController {
-  final RegistrarTomaUseCase registrarTomaUseCase = RegistrarTomaUseCase(
-    DosisRepositoryImpl(supabase: Supabase.instance.client),
-  );
+  final RegistrarTomaUseCase registrarTomaUseCase;
+  final SupabaseClient supabase;
+  final SessionController sessionController;
+
+  RegistrarTomaController({
+    RegistrarTomaUseCase? registrarTomaUseCase,
+    SupabaseClient? supabase,
+    SessionController? sessionController,
+  }) : supabase = supabase ?? Supabase.instance.client,
+       sessionController = sessionController ?? SessionController(),
+       registrarTomaUseCase =
+           registrarTomaUseCase ??
+           RegistrarTomaUseCase(
+             DosisRepositoryImpl(
+               supabase: supabase ?? Supabase.instance.client,
+             ),
+           );
+
+  Future<Map<String, dynamic>> obtenerTratamientoEnCurso(int idUsuario) async {
+    return await supabase
+        .from('tratamiento_paciente')
+        .select(
+          'id, fase1_intensiva_activa, fase2_continuacion_activa, dosis_pendientes',
+        )
+        .eq('id_paciente', idUsuario)
+        .eq('estado', 'En curso')
+        .single();
+  }
+
+  Future<List<dynamic>> obtenerDosisDeHoy(int idTratamiento) async {
+    final now = DateTime.now();
+    final inicioDia = DateTime(now.year, now.month, now.day);
+    final finDia = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    return await supabase
+        .from('dosis')
+        .select('id')
+        .eq('id_tratamiento_paciente', idTratamiento)
+        .gte('fecha_hora_toma', inicioDia.toIso8601String())
+        .lte('fecha_hora_toma', finDia.toIso8601String());
+  }
+
+  Future<int> obtenerMedicamentoId(bool fase1Activa, int idTratamiento) async {
+    final tablaMedicacion =
+        fase1Activa ? 'medicacion_paciente_f1' : 'medicacion_paciente_f2';
+
+    final medResponse =
+        await supabase
+            .from(tablaMedicacion)
+            .select('id_medicamento')
+            .eq('id_tratamiento_paciente', idTratamiento)
+            .single();
+
+    return medResponse['id_medicamento'];
+  }
+
+  Future<void> actualizarDosisPendientes(
+    int idTratamiento,
+    int nuevaDosisPendiente,
+  ) async {
+    await supabase
+        .from('tratamiento_paciente')
+        .update({'dosis_pendientes': nuevaDosisPendiente})
+        .eq('id', idTratamiento);
+  }
+
+  Future<int> obtenerTotalDosisTomadas(int idTratamiento) async {
+    final countResponse = await supabase
+        .from('dosis')
+        .select('id')
+        .eq('id_tratamiento_paciente', idTratamiento);
+
+    return countResponse.length;
+  }
+
+  Future<void> activarFase2(int idTratamiento) async {
+    await supabase
+        .from('tratamiento_paciente')
+        .update({
+          'fase1_intensiva_activa': false,
+          'fase2_continuacion_activa': true,
+          'fecha_inicio_fase2': DateTime.now().toIso8601String(),
+        })
+        .eq('id', idTratamiento);
+  }
+
+  Future<void> completarTratamiento(int idTratamiento) async {
+    await supabase
+        .from('tratamiento_paciente')
+        .update({'estado': 'Completado'})
+        .eq('id', idTratamiento);
+  }
 
   Future<void> registrarTomaDesdeSesion({required BuildContext context}) async {
     showDialog(
@@ -21,41 +110,25 @@ class RegistrarTomaController {
     );
 
     try {
-      final idUsuario = SessionController().idUsuario;
+      final idUsuario = sessionController.idUsuario;
       if (idUsuario == null) throw Exception('Usuario no autenticado');
 
-      final supabase = Supabase.instance.client;
-
-      // 1. Obtener tratamiento activo
-      final tratamientoResponse = await supabase
-          .from('tratamiento_paciente')
-          .select('id, fase1_intensiva_activa, fase2_continuacion_activa, dosis_pendientes')
-          .eq('id_paciente', idUsuario)
-          .eq('estado', 'En curso')
-          .single();
+      final tratamientoResponse = await obtenerTratamientoEnCurso(idUsuario);
 
       final int idTratamiento = tratamientoResponse['id'];
       final bool fase1Activa = tratamientoResponse['fase1_intensiva_activa'];
       final int dosisPendientes = tratamientoResponse['dosis_pendientes'];
 
-      // 2. Verificar si ya se tomó la dosis hoy
-      final now = DateTime.now();
-      final inicioDia = DateTime(now.year, now.month, now.day);
-      final finDia = DateTime(now.year, now.month, now.day, 23, 59, 59);
-
-      final dosisHoy = await supabase
-          .from('dosis')
-          .select('id')
-          .eq('id_tratamiento_paciente', idTratamiento)
-          .gte('fecha_hora_toma', inicioDia.toIso8601String())
-          .lte('fecha_hora_toma', finDia.toIso8601String());
+      final dosisHoy = await obtenerDosisDeHoy(idTratamiento);
 
       if (dosisHoy.isNotEmpty) {
         if (context.mounted) Navigator.of(context).pop();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Ya registraste la dosis de hoy. Solo se permite una dosis por día.'),
+              content: Text(
+                'Ya registraste la dosis de hoy. Solo se permite una dosis por día.',
+              ),
               backgroundColor: Colors.orange,
             ),
           );
@@ -63,17 +136,11 @@ class RegistrarTomaController {
         return;
       }
 
-      // 3. Obtener id_medicamento real desde la tabla de medicación
-      final tablaMedicacion =
-          fase1Activa ? 'medicacion_paciente_f1' : 'medicacion_paciente_f2';
-      final medResponse = await supabase
-          .from(tablaMedicacion)
-          .select('id_medicamento')
-          .eq('id_tratamiento_paciente', idTratamiento)
-          .single();
-      final int idMedicamento = medResponse['id_medicamento'];
+      final int idMedicamento = await obtenerMedicamentoId(
+        fase1Activa,
+        idTratamiento,
+      );
 
-      // 4. Registrar la dosis
       await registrarTomaUseCase(
         idTratamientoPaciente: idTratamiento,
         idMedicamento: idMedicamento,
@@ -81,34 +148,18 @@ class RegistrarTomaController {
         estado: 'Tomada',
       );
 
-      // 5. Actualizar dosis_pendientes
       final nuevaDosisPendiente = dosisPendientes - 1;
-      await supabase
-          .from('tratamiento_paciente')
-          .update({'dosis_pendientes': nuevaDosisPendiente})
-          .eq('id', idTratamiento);
+      await actualizarDosisPendientes(idTratamiento, nuevaDosisPendiente);
 
-      // 6. Contar total de dosis tomadas en este tratamiento
-      final countResponse = await supabase
-          .from('dosis')
-          .select('id')
-          .eq('id_tratamiento_paciente', idTratamiento);
-      final int totalDosisTomadas = countResponse.length;
+      final int totalDosisTomadas = await obtenerTotalDosisTomadas(
+        idTratamiento,
+      );
 
       if (!context.mounted) return;
-      Navigator.of(context).pop(); // Cerrar diálogo de carga
+      Navigator.of(context).pop();
 
-      // 7. Evaluar transición de fase o finalización del tratamiento
       if (fase1Activa && totalDosisTomadas >= 56) {
-        // Transición a fase de continuación
-        await supabase
-            .from('tratamiento_paciente')
-            .update({
-              'fase1_intensiva_activa': false,
-              'fase2_continuacion_activa': true,
-              'fecha_inicio_fase2': DateTime.now().toIso8601String(),
-            })
-            .eq('id', idTratamiento);
+        await activarFase2(idTratamiento);
 
         if (context.mounted) {
           Navigator.pushReplacement(
@@ -119,11 +170,7 @@ class RegistrarTomaController {
           );
         }
       } else if (nuevaDosisPendiente <= 0) {
-        // Tratamiento completado
-        await supabase
-            .from('tratamiento_paciente')
-            .update({'estado': 'Completado'})
-            .eq('id', idTratamiento);
+        await completarTratamiento(idTratamiento);
 
         if (context.mounted) {
           Navigator.pushReplacement(

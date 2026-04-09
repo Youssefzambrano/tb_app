@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'perfil_completado_pantalla.dart';
 import '../../../../domain/usecases/registrar_usuario_usecase.dart';
 import '../../../../data/repositories_impl/usuario_repository_impl.dart';
@@ -9,9 +10,11 @@ import '../../../../domain/usecases/registrar_paciente_usecase.dart';
 import '../../../../domain/usecases/asignar_enfermero_automatico_usecase.dart';
 import '../../../../data/repositories_impl/asignacion_enfermero_repository_impl.dart';
 import '../../../../data/repositories_impl/paciente_repository_impl.dart';
+import '../../../../data/datasources/remote/supabase/asignacion_enfermero_remote_datasource_impl.dart';
 
 class CompletarPerfilPantalla extends StatefulWidget {
   final String nombre;
+
   const CompletarPerfilPantalla({super.key, required this.nombre});
 
   @override
@@ -43,6 +46,7 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
+
     if (picked != null) {
       setState(() => _fechaNacimiento = picked);
     }
@@ -71,8 +75,14 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
         PacienteRepositoryImpl(supabase: Supabase.instance.client),
       );
 
+      final asignacionRepository = AsignacionEnfermeroRepositoryImpl(
+        remoteDataSource: AsignacionEnfermeroRemoteDataSourceImpl(
+          supabase: Supabase.instance.client,
+        ),
+      );
+
       final asignarEnfermeroUseCase = AsignarEnfermeroAutomaticoUseCase(
-        AsignacionEnfermeroRepositoryImpl(supabase: Supabase.instance.client),
+        asignacionRepository,
       );
 
       try {
@@ -94,24 +104,27 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
 
         String? nombreEnfermeroAsignado;
         String? mensajeAsignacion;
+
         try {
           final asignacion = await asignarEnfermeroUseCase(
             idPaciente: usuario.id,
           );
+
           nombreEnfermeroAsignado = asignacion?.nombreEnfermero;
+
           if (nombreEnfermeroAsignado == null ||
               nombreEnfermeroAsignado.trim().isEmpty) {
             mensajeAsignacion =
                 'Tu perfil fue creado correctamente. Te asignaremos un enfermero pronto.';
           }
         } catch (e) {
-          // No bloquea el registro del paciente si la asignacion falla.
           nombreEnfermeroAsignado = null;
           mensajeAsignacion =
               'Tu perfil fue creado, pero no se pudo asignar enfermero en este momento. Error: $e';
         }
 
         if (!mounted) return;
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -124,6 +137,7 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
         );
       } catch (e) {
         if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al guardar perfil: ${e.toString()}')),
         );
@@ -145,6 +159,7 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -213,9 +228,9 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
                                 child: Text('NUIP'),
                               ),
                             ],
-                            onChanged:
-                                (value) =>
-                                    setState(() => _tipoDocumento = value),
+                            onChanged: (value) {
+                              setState(() => _tipoDocumento = value);
+                            },
                             validator:
                                 (value) =>
                                     value == null ? 'Campo requerido' : null,
@@ -273,8 +288,9 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
                                 child: Text('Otro'),
                               ),
                             ],
-                            onChanged:
-                                (value) => setState(() => _genero = value),
+                            onChanged: (value) {
+                              setState(() => _genero = value);
+                            },
                             validator:
                                 (value) =>
                                     value == null ? 'Campo requerido' : null,

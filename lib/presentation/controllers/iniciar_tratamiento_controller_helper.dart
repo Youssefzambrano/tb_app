@@ -5,13 +5,45 @@ import '../../data/repositories_impl/tratamiento_repository_impl.dart';
 import '../../widgets/dialogo_cargando.dart';
 import '../../routes/app_routes.dart';
 
+typedef ObtenerIdUsuarioPorCorreo =
+    Future<int> Function(SupabaseClient supabase, String correo);
+
+Future<int> _obtenerIdUsuarioPorCorreoDefault(
+  SupabaseClient supabase,
+  String correo,
+) async {
+  final response =
+      await supabase
+          .from('usuario')
+          .select('id')
+          .eq('correo_electronico', correo)
+          .single();
+
+  return response['id'] as int;
+}
+
 class IniciarTratamientoController {
-  final iniciarTratamientoUseCase = IniciarTratamientoUseCase(
-    TratamientoRepositoryImpl(supabase: Supabase.instance.client),
-  );
+  final SupabaseClient supabase;
+  final IniciarTratamientoUseCase iniciarTratamientoUseCase;
+  final ObtenerIdUsuarioPorCorreo obtenerIdUsuarioPorCorreo;
+
+  IniciarTratamientoController({
+    SupabaseClient? supabase,
+    IniciarTratamientoUseCase? iniciarTratamientoUseCase,
+    ObtenerIdUsuarioPorCorreo? obtenerIdUsuarioPorCorreo,
+  }) : supabase = supabase ?? Supabase.instance.client,
+       iniciarTratamientoUseCase =
+           iniciarTratamientoUseCase ??
+           IniciarTratamientoUseCase(
+             TratamientoRepositoryImpl(
+               supabase: supabase ?? Supabase.instance.client,
+             ),
+           ),
+       obtenerIdUsuarioPorCorreo =
+           obtenerIdUsuarioPorCorreo ?? _obtenerIdUsuarioPorCorreoDefault;
 
   Future<void> iniciarTratamientoDesdeSesion(BuildContext context) async {
-    final user = Supabase.instance.client.auth.currentUser;
+    final user = supabase.auth.currentUser;
 
     if (user == null || user.email == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -28,18 +60,14 @@ class IniciarTratamientoController {
     );
 
     try {
-      final response =
-          await Supabase.instance.client
-              .from('usuario')
-              .select('id')
-              .eq('correo_electronico', user.email!) // validado arriba
-              .single();
-
-      final int idUsuario = response['id'];
+      final int idUsuario = await obtenerIdUsuarioPorCorreo(
+        supabase,
+        user.email!,
+      );
 
       await iniciarTratamientoUseCase(idPaciente: idUsuario);
 
-      Navigator.of(context).pop(); // cerrar el diálogo
+      Navigator.of(context).pop();
       Navigator.pushReplacementNamed(context, AppRoutes.inicio);
     } catch (e) {
       Navigator.of(context).pop();

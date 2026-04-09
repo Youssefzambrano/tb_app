@@ -7,25 +7,29 @@ import '../../widgets/dialogo_cargando.dart';
 import '../../routes/app_routes.dart';
 
 class SessionController {
-  // Singleton
-  static final SessionController _instance = SessionController._internal();
-  factory SessionController() => _instance;
-  SessionController._internal();
+  static SessionController? _instance;
 
-  final CerrarSesionUseCase cerrarSesionUseCase = CerrarSesionUseCase(
-    supabase: Supabase.instance.client,
-    storage: const FlutterSecureStorage(),
-  );
+  factory SessionController({CerrarSesionUseCase? cerrarSesionUseCase}) {
+    _instance ??= SessionController._internal(cerrarSesionUseCase);
+    return _instance!;
+  }
 
-  /// Usuario autenticado actual
+  SessionController._internal(CerrarSesionUseCase? cerrarSesionUseCase)
+    : cerrarSesionUseCase =
+          cerrarSesionUseCase ??
+          CerrarSesionUseCase(
+            supabase: Supabase.instance.client,
+            storage: const FlutterSecureStorage(),
+          );
+
+  final CerrarSesionUseCase cerrarSesionUseCase;
+
   Usuario? usuarioActual;
 
-  /// Inicializa el usuario en memoria después del login
   Future<void> inicializarUsuarioActual(Usuario usuario) async {
     usuarioActual = usuario;
   }
 
-  /// Limpia los datos de sesión
   Future<void> cerrarSesionYRedirigir(BuildContext context) async {
     showDialog(
       context: context,
@@ -35,8 +39,8 @@ class SessionController {
 
     try {
       await cerrarSesionUseCase();
-      usuarioActual = null; // Limpia el usuario actual
-      Navigator.of(context).pop(); // Cierra el diálogo
+      usuarioActual = null;
+      Navigator.of(context).pop();
       Navigator.pushNamedAndRemoveUntil(context, '/bienvenida', (_) => false);
     } catch (e) {
       Navigator.of(context).pop();
@@ -46,11 +50,15 @@ class SessionController {
     }
   }
 
-  /// Getters de conveniencia para usar en la UI
   int? get idUsuario => usuarioActual?.id;
   String get nombreUsuario => usuarioActual?.nombre ?? 'Usuario';
   String get correoUsuario => usuarioActual?.correoElectronico ?? '';
   String get nivelAcceso => usuarioActual?.nivelAcceso ?? 'Basico';
   bool get esEnfermero => nivelAcceso.toLowerCase() == 'enfermero';
-  String get rutaInicioPorRol => esEnfermero ? AppRoutes.inicioEnfermero : AppRoutes.inicio;
+  String get rutaInicioPorRol =>
+      esEnfermero ? AppRoutes.inicioEnfermero : AppRoutes.inicio;
+
+  static void resetForTest() {
+    _instance = null;
+  }
 }
