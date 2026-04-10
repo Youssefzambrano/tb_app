@@ -6,7 +6,9 @@ import 'confirmar_correo_pantalla.dart';
 import '../../legal/pages/tratamiento_datos_pantalla.dart';
 
 class RegistroPantalla extends StatefulWidget {
-  const RegistroPantalla({super.key});
+  final dynamic authService;
+
+  const RegistroPantalla({super.key, this.authService});
 
   @override
   State<RegistroPantalla> createState() => _RegistroPantallaState();
@@ -18,12 +20,19 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmarController = TextEditingController();
-  final _authService = AuthSupabaseService();
   final _secureStorage = const FlutterSecureStorage();
+
+  late final dynamic _authService;
 
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
   bool _aceptaPolitica = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService ?? AuthSupabaseService();
+  }
 
   @override
   void dispose() {
@@ -46,6 +55,8 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
         await _secureStorage.write(key: 'email', value: email);
         await _secureStorage.write(key: 'password', value: password);
 
+        if (!mounted) return;
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -53,6 +64,7 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
           ),
         );
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
@@ -119,14 +131,15 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                       label: 'Confirmar contraseña',
                       obscure: !_confirmPasswordVisible,
                       iconToggle: () {
-                        setState(
-                          () =>
-                              _confirmPasswordVisible =
-                                  !_confirmPasswordVisible,
-                        );
+                        setState(() {
+                          _confirmPasswordVisible = !_confirmPasswordVisible;
+                        });
                       },
                       visible: _confirmPasswordVisible,
                       validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Campo requerido';
+                        }
                         if (value != _passwordController.text) {
                           return 'No coincide';
                         }
