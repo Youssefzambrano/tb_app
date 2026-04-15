@@ -39,6 +39,15 @@ class AuthSupabaseService {
   }
 
   Future<void> resetPassword(String email) async {
-    await _supabase.auth.resetPasswordForEmail(email);
+    final response = await _supabase.functions.invoke(
+      'reset-password-temp',
+      body: {'email': email},
+    );
+    if (response.status != 200) {
+      final message =
+          (response.data as Map<String, dynamic>?)?['error']?.toString() ??
+              'No se pudo enviar la contraseña temporal.';
+      throw Exception(message);
+    }
   }
 }
