@@ -37,7 +37,7 @@ class EnfermeroDashboardRepositoryImpl implements EnfermeroDashboardRepository {
     for (final idPaciente in idsPacientes) {
       final usuario = await supabase
           .from('usuario')
-          .select('nombre, correo_electronico')
+          .select('nombre, correo_electronico, numero_documento')
           .eq('id', idPaciente)
           .single();
 
@@ -115,6 +115,7 @@ class EnfermeroDashboardRepositoryImpl implements EnfermeroDashboardRepository {
           idTratamiento: idTratamiento,
           nombrePaciente: (usuario['nombre'] as String?) ?? 'Paciente',
           correoPaciente: (usuario['correo_electronico'] as String?) ?? '',
+          numeroDocumento: (usuario['numero_documento'] as String?) ?? '',
           faseActual: faseActual,
           estadoTratamiento: estadoTratamiento,
           dosisTomadas: dosisTomadas,

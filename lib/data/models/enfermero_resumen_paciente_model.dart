@@ -6,6 +6,7 @@ class EnfermeroResumenPacienteModel extends EnfermeroResumenPaciente {
     required super.idTratamiento,
     required super.nombrePaciente,
     required super.correoPaciente,
+    required super.numeroDocumento,
     required super.faseActual,
     required super.estadoTratamiento,
     required super.dosisTomadas,
