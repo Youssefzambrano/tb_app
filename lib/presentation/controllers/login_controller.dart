@@ -18,6 +18,7 @@ class LoginController {
     required String email,
     required String password,
   }) async {
+    final emailNormalizado = email.trim().toLowerCase();
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -25,12 +26,12 @@ class LoginController {
     );
 
     try {
-      await iniciarSesionUseCase(email: email, password: password);
+      await iniciarSesionUseCase(email: emailNormalizado, password: password);
 
       final data = await Supabase.instance.client
           .from('usuario')
           .select()
-          .eq('correo_electronico', email)
+          .eq('correo_electronico', emailNormalizado)
           .single();
 
       final usuario = UsuarioModel.fromMap(data);
@@ -47,11 +48,13 @@ class LoginController {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Correo o contrasena incorrectos')),
       );
-    } catch (_) {
+    } catch (e, stack) {
+      debugPrint('❌ [LOGIN ERROR] $e');
+      debugPrint('📋 $stack');
       if (!context.mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ocurrio un error. Intenta nuevamente.')),
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }

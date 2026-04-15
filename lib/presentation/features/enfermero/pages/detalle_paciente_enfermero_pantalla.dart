@@ -127,7 +127,7 @@ class _DetallePacienteEnfermeroPantallaState
                   content: StatefulBuilder(
                     builder:
                   (ctx, setStateDialog) => DropdownButtonFormField<String>(
-                    initialValue: estado,
+                    value: estado,
                     items: const [
                       DropdownMenuItem(value: 'Tomada', child: Text('Tomada')),
                       DropdownMenuItem(value: 'Omitida', child: Text('Omitida')),
