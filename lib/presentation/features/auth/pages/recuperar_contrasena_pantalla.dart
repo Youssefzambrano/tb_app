@@ -34,8 +34,11 @@ class _RecuperarContrasenaPantallaState
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Se enviaron las instrucciones de recuperación al correo.'),
+          content: Text(
+            'Te enviamos una contraseña temporal al correo. Úsala para ingresar y luego cámbiala desde tu perfil.',
+          ),
           backgroundColor: Colors.green,
+          duration: Duration(seconds: 6),
         ),
       );
       Navigator.pop(context);
@@ -87,7 +90,7 @@ class _RecuperarContrasenaPantallaState
               ),
               const SizedBox(height: 16),
               const Text(
-                'Ingresa tu correo electrónico registrado y te enviaremos instrucciones para restablecer tu contraseña.',
+                'Ingresa tu correo electrónico registrado. Te enviaremos una contraseña temporal para que puedas ingresar y luego cambiarla desde tu perfil.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),
