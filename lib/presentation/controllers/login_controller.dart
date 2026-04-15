@@ -39,20 +39,12 @@ class LoginController {
     try {
       await iniciarSesionUseCase(email: emailNormalizado, password: password);
 
-<<<<<<< HEAD
       final data =
-          await supabase
+          await Supabase.instance.client
               .from('usuario')
               .select()
-              .eq('correo_electronico', email)
+              .eq('correo_electronico', emailNormalizado)
               .single();
-=======
-      final data = await Supabase.instance.client
-          .from('usuario')
-          .select()
-          .eq('correo_electronico', emailNormalizado)
-          .single();
->>>>>>> 0e1fb6b9a7ce1f37fd284421673a3b07413cdf24
 
       final usuario = UsuarioModel.fromMap(data);
 
@@ -74,9 +66,9 @@ class LoginController {
       debugPrint('📋 $stack');
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 }
