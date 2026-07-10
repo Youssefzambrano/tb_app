@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../inicio/pages/inicio_usuario_pantalla.dart';
-//import 'inicio_enfermero_pantalla.dart';
 import 'recuperar_contrasena_pantalla.dart';
 import '../../../controllers/login_controller.dart';
 
@@ -92,7 +90,7 @@ class _IngresarPantallaState extends State<IngresarPantalla> {
                           TextFormField(
                             controller: _emailController,
                             decoration: InputDecoration(
-                              labelText: 'Correo o usuario',
+                              labelText: 'Correo electrónico',
                               filled: true,
                               fillColor: const Color(0xFFF1F4F8),
                               border: OutlineInputBorder(

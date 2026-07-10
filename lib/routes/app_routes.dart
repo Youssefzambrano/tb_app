@@ -16,6 +16,7 @@ import '../presentation/features/bienvenida/pages/bienvenida_pantalla.dart';
 // Inicio
 import '../presentation/features/inicio/pages/inicio_usuario_pantalla.dart';
 import '../presentation/features/enfermero/pages/inicio_enfermero_pantalla.dart';
+import '../presentation/features/admin/pages/inicio_admin_pantalla.dart';
 
 // Perfil
 import '../presentation/features/perfil/pages/completar_perfil_pantalla.dart';
@@ -39,6 +40,7 @@ class AppRoutes {
   static const cambiarContrasena = '/cambiar-contrasena';
   static const inicio = '/inicio';
   static const inicioEnfermero = '/inicio-enfermero';
+  static const inicioAdmin = '/inicio-admin';
   static const completarPerfil = '/completar-perfil';
   static const perfilCompletado = '/perfil-completado';
   static const autochequeo = '/autochequeo';
@@ -56,6 +58,7 @@ class AppRoutes {
     cambiarContrasena: (context) => const CambiarContrasenaPantalla(),
     inicio: (context) => const InicioUsuarioPantalla(),
     inicioEnfermero: (context) => const InicioEnfermeroPantalla(),
+    inicioAdmin: (context) => const InicioAdminPantalla(),
     completarPerfil: (context) => const CompletarPerfilPantalla(nombre: ''),
     perfilCompletado: (context) => const PerfilCompletadoPantalla(),
     autochequeo: (context) => const ModuloAutochequeoPantalla(),

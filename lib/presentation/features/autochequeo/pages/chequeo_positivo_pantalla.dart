@@ -25,25 +25,14 @@ class ChequeoPositivoPantalla extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/images/evita_feliz.png',
+                  'assets/images/evita_dudas.png',
                   width: 200,
                   height: 200,
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  '¡Gracias por tu respuesta!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Hemos notado que presentas síntomas.\nNo te preocupes, todo va a estar bien.\nAhora te pondrás en contacto con el personal de salud.',
+                  'Hemos notado que presentas signos y síntomas relacionados con el tratamiento de tuberculosis. Ponte en contacto con el personal de salud que te entrega los medicamentos.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Manrope',

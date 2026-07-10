@@ -1,7 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../domain/usecases/registrar_toma_usecase.dart';
-import '../../data/repositories_impl/dosis_repository_impl.dart';
 import '../../widgets/dialogo_cargando.dart';
 import '../../routes/app_routes.dart';
 import '../features/tratamiento/pages/fase_intensiva_terminada_pantalla.dart';
@@ -9,11 +8,10 @@ import '../features/tratamiento/pages/tratamiento_terminado_pantalla.dart';
 import 'session_controller.dart';
 
 class RegistrarTomaController {
-  final RegistrarTomaUseCase registrarTomaUseCase = RegistrarTomaUseCase(
-    DosisRepositoryImpl(supabase: Supabase.instance.client),
-  );
-
-  Future<void> registrarTomaDesdeSesion({required BuildContext context}) async {
+  Future<void> registrarTomaDesdeSesion({
+    required BuildContext context,
+    File? fotoFile,
+  }) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -29,7 +27,8 @@ class RegistrarTomaController {
       // 1. Obtener tratamiento activo
       final tratamientoResponse = await supabase
           .from('tratamiento_paciente')
-          .select('id, fase1_intensiva_activa, fase2_continuacion_activa, dosis_pendientes')
+          .select(
+              'id, fase1_intensiva_activa, fase2_continuacion_activa, dosis_pendientes')
           .eq('id_paciente', idUsuario)
           .eq('estado', 'En curso')
           .single();
@@ -55,7 +54,8 @@ class RegistrarTomaController {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Ya registraste la dosis de hoy. Solo se permite una dosis por día.'),
+              content: Text(
+                  'Ya registraste la dosis de hoy. Solo se permite una dosis por día.'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -63,7 +63,7 @@ class RegistrarTomaController {
         return;
       }
 
-      // 3. Obtener id_medicamento real desde la tabla de medicación
+      // 3. Obtener id_medicamento real
       final tablaMedicacion =
           fase1Activa ? 'medicacion_paciente_f1' : 'medicacion_paciente_f2';
       final medResponse = await supabase
@@ -73,22 +73,38 @@ class RegistrarTomaController {
           .single();
       final int idMedicamento = medResponse['id_medicamento'];
 
-      // 4. Registrar la dosis
-      await registrarTomaUseCase(
-        idTratamientoPaciente: idTratamiento,
-        idMedicamento: idMedicamento,
-        fechaHoraToma: DateTime.now(),
-        estado: 'Tomada',
-      );
+      // 4. Subir foto a Supabase Storage
+      String? fotoUrl;
+      if (fotoFile != null) {
+        final fileName =
+            'paciente_${idUsuario}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final storagePath = 'dosis/$fileName';
+        await supabase.storage.from('dosis-fotos').uploadBinary(
+              storagePath,
+              await fotoFile.readAsBytes(),
+              fileOptions: const FileOptions(contentType: 'image/jpeg'),
+            );
+        fotoUrl =
+            supabase.storage.from('dosis-fotos').getPublicUrl(storagePath);
+      }
 
-      // 5. Actualizar dosis_pendientes
+      // 5. Registrar la dosis
+      await supabase.from('dosis').insert({
+        'id_tratamiento_paciente': idTratamiento,
+        'id_medicamento': idMedicamento,
+        'fecha_hora_toma': DateTime.now().toIso8601String(),
+        'estado': 'Tomada',
+        if (fotoUrl != null) 'foto_url': fotoUrl,
+      });
+
+      // 6. Actualizar dosis_pendientes
       final nuevaDosisPendiente = dosisPendientes - 1;
       await supabase
           .from('tratamiento_paciente')
           .update({'dosis_pendientes': nuevaDosisPendiente})
           .eq('id', idTratamiento);
 
-      // 6. Contar total de dosis tomadas en este tratamiento
+      // 7. Contar total de dosis tomadas
       final countResponse = await supabase
           .from('dosis')
           .select('id')
@@ -96,11 +112,10 @@ class RegistrarTomaController {
       final int totalDosisTomadas = countResponse.length;
 
       if (!context.mounted) return;
-      Navigator.of(context).pop(); // Cerrar diálogo de carga
+      Navigator.of(context).pop(); // Cerrar diálogo
 
-      // 7. Evaluar transición de fase o finalización del tratamiento
+      // 8. Evaluar transición de fase o fin de tratamiento
       if (fase1Activa && totalDosisTomadas >= 56) {
-        // Transición a fase de continuación
         await supabase
             .from('tratamiento_paciente')
             .update({
@@ -119,7 +134,6 @@ class RegistrarTomaController {
           );
         }
       } else if (nuevaDosisPendiente <= 0) {
-        // Tratamiento completado
         await supabase
             .from('tratamiento_paciente')
             .update({'estado': 'Completado'})
