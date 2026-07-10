@@ -43,7 +43,7 @@ class _ModuloEducativoPantallaState extends State<ModuloEducativoPantalla> {
       case 'recomendaciones_tratamiento':
         return 'Recomendaciones';
       case 'evitar_contagio':
-        return 'evitar contagios';
+        return 'Evitar contagios';
       default:
         return key;
     }

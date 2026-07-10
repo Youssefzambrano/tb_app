@@ -28,6 +28,7 @@ void main() {
         final result = await useCase(1);
 
         expect(result, isEmpty);
+
         verify(
           () => mockRepository.obtenerResumenPacientesAsignados(1),
         ).called(1);
@@ -40,6 +41,7 @@ void main() {
           idPaciente: 1,
           idTratamiento: 10,
           nombrePaciente: 'Paciente A',
+          numeroDocumento: '1001',
           correoPaciente: 'a@test.com',
           faseActual: 'Intensiva',
           estadoTratamiento: 'En curso',
@@ -53,6 +55,7 @@ void main() {
           idPaciente: 2,
           idTratamiento: 20,
           nombrePaciente: 'Paciente B',
+          numeroDocumento: '1002',
           correoPaciente: 'b@test.com',
           faseActual: 'Continuación',
           estadoTratamiento: 'En curso',
@@ -66,6 +69,7 @@ void main() {
           idPaciente: 3,
           idTratamiento: 30,
           nombrePaciente: 'Paciente C',
+          numeroDocumento: '1003',
           correoPaciente: 'c@test.com',
           faseActual: 'Intensiva',
           estadoTratamiento: 'En curso',
@@ -101,6 +105,7 @@ void main() {
             idPaciente: 1,
             idTratamiento: 10,
             nombrePaciente: 'Paciente A',
+            numeroDocumento: '2001',
             correoPaciente: 'a@test.com',
             faseActual: 'Intensiva',
             estadoTratamiento: 'En curso',
@@ -114,6 +119,7 @@ void main() {
             idPaciente: 2,
             idTratamiento: 20,
             nombrePaciente: 'Paciente B',
+            numeroDocumento: '2002',
             correoPaciente: 'b@test.com',
             faseActual: 'Continuación',
             estadoTratamiento: 'En curso',
@@ -127,6 +133,7 @@ void main() {
             idPaciente: 3,
             idTratamiento: 30,
             nombrePaciente: 'Paciente C',
+            numeroDocumento: '2003',
             correoPaciente: 'c@test.com',
             faseActual: 'Intensiva',
             estadoTratamiento: 'En curso',
@@ -146,7 +153,6 @@ void main() {
 
         expect(result.length, 3);
 
-        // Adherencias:
         // Paciente 2 = 20%
         // Paciente 3 = 50%
         // Paciente 1 = 90%
@@ -168,6 +174,7 @@ void main() {
             idPaciente: 1,
             idTratamiento: 10,
             nombrePaciente: 'Paciente A',
+            numeroDocumento: '3001',
             correoPaciente: 'a@test.com',
             faseActual: 'Intensiva',
             estadoTratamiento: 'En curso',
@@ -181,6 +188,7 @@ void main() {
             idPaciente: 2,
             idTratamiento: 20,
             nombrePaciente: 'Paciente B',
+            numeroDocumento: '3002',
             correoPaciente: 'b@test.com',
             faseActual: 'Continuación',
             estadoTratamiento: 'En curso',
@@ -194,6 +202,7 @@ void main() {
             idPaciente: 3,
             idTratamiento: 30,
             nombrePaciente: 'Paciente C',
+            numeroDocumento: '3003',
             correoPaciente: 'c@test.com',
             faseActual: 'Intensiva',
             estadoTratamiento: 'En curso',
@@ -207,6 +216,7 @@ void main() {
             idPaciente: 4,
             idTratamiento: 40,
             nombrePaciente: 'Paciente D',
+            numeroDocumento: '3004',
             correoPaciente: 'd@test.com',
             faseActual: 'Continuación',
             estadoTratamiento: 'En curso',
@@ -226,7 +236,7 @@ void main() {
 
         expect(result.length, 4);
 
-        // Prioridad 3 primero, y dentro de esa prioridad:
+        // Prioridad 3 primero
         // Paciente 2 = 16.66%
         // Paciente 3 = 33.33%
         expect(result[0].idPaciente, 2);

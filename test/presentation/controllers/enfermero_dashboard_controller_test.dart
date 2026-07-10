@@ -59,6 +59,7 @@ void main() {
           idPaciente: 1,
           idTratamiento: 10,
           nombrePaciente: 'Juan',
+          numeroDocumento: '123456789',
           correoPaciente: 'juan@test.com',
           faseActual: 'Intensiva',
           estadoTratamiento: 'En curso',
