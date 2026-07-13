@@ -8,6 +8,54 @@ import '../features/tratamiento/pages/tratamiento_terminado_pantalla.dart';
 import 'session_controller.dart';
 
 class RegistrarTomaController {
+  // Instancia de acceso directo para evitar alterar los constructores del proyecto
+  final SessionController sessionController = SessionController();
+
+  // --- MÉTODOS COMPLEMENTARIOS REQUERIDOS ---
+
+  /// Verifica si el paciente ya registró una dosis en el día de hoy
+  Future<List<dynamic>> obtenerDosisDeHoy(int idTratamiento) async {
+    try {
+      final supabase = Supabase.instance.client;
+      final hoy = DateTime.now();
+      final inicioDia =
+          DateTime(hoy.year, hoy.month, hoy.day).toIso8601String();
+      final finDia =
+          DateTime(hoy.year, hoy.month, hoy.day, 23, 59, 59).toIso8601String();
+
+      final response = await supabase
+          .from('dosis')
+          .select('id')
+          .eq('id_tratamiento_paciente', idTratamiento)
+          .gte('fecha_hora_toma', inicioDia)
+          .lte('fecha_hora_toma', finDia);
+
+      return response as List<dynamic>;
+    } catch (e) {
+      debugPrint('⚠️ Error en obtenerDosisDeHoy: $e');
+      return [];
+    }
+  }
+
+  /// Actualiza las dosis pendientes en la base de datos de Supabase
+  Future<void> actualizarDosisPendientes(
+    int idTratamiento,
+    int nuevasDosis,
+  ) async {
+    try {
+      final supabase = Supabase.instance.client;
+      await supabase
+          .from('tratamiento_paciente')
+          .update({'dosis_pendientes': nuevasDosis})
+          .eq('id', idTratamiento);
+    } catch (e) {
+      debugPrint('⚠️ Error en actualizarDosisPendientes: $e');
+      throw Exception('No se pudo actualizar el conteo de dosis pendientes.');
+    }
+  }
+
+  // --- MÉTODO PRINCIPAL DE INTEGRACIÓN ---
+
   Future<void> registrarTomaDesdeSesion({
     required BuildContext context,
     File? fotoFile,
@@ -25,18 +73,21 @@ class RegistrarTomaController {
       final supabase = Supabase.instance.client;
 
       // 1. Obtener tratamiento activo
-      final tratamientoResponse = await supabase
-          .from('tratamiento_paciente')
-          .select(
-              'id, fase1_intensiva_activa, fase2_continuacion_activa, dosis_pendientes')
-          .eq('id_paciente', idUsuario)
-          .eq('estado', 'En curso')
-          .single();
+      final tratamientoResponse =
+          await supabase
+              .from('tratamiento_paciente')
+              .select(
+                'id, fase1_intensiva_activa, fase2_continuacion_activa, dosis_pendientes',
+              )
+              .eq('id_paciente', idUsuario)
+              .eq('estado', 'En curso')
+              .single();
 
       final int idTratamiento = tratamientoResponse['id'];
       final bool fase1Activa = tratamientoResponse['fase1_intensiva_activa'];
       final int dosisPendientes = tratamientoResponse['dosis_pendientes'];
 
+      // 2. Comprobar dosis duplicada hoy
       final dosisHoy = await obtenerDosisDeHoy(idTratamiento);
 
       if (dosisHoy.isNotEmpty) {
@@ -45,7 +96,8 @@ class RegistrarTomaController {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                  'Ya registraste la dosis de hoy. Solo se permite una dosis por día.'),
+                'Ya registraste la dosis de hoy. Solo se permite una dosis por día.',
+              ),
               backgroundColor: Colors.orange,
             ),
           );
@@ -56,11 +108,12 @@ class RegistrarTomaController {
       // 3. Obtener id_medicamento real
       final tablaMedicacion =
           fase1Activa ? 'medicacion_paciente_f1' : 'medicacion_paciente_f2';
-      final medResponse = await supabase
-          .from(tablaMedicacion)
-          .select('id_medicamento')
-          .eq('id_tratamiento_paciente', idTratamiento)
-          .single();
+      final medResponse =
+          await supabase
+              .from(tablaMedicacion)
+              .select('id_medicamento')
+              .eq('id_tratamiento_paciente', idTratamiento)
+              .single();
       final int idMedicamento = medResponse['id_medicamento'];
 
       // 4. Subir foto a Supabase Storage
@@ -69,13 +122,16 @@ class RegistrarTomaController {
         final fileName =
             'paciente_${idUsuario}_${DateTime.now().millisecondsSinceEpoch}.jpg';
         final storagePath = 'dosis/$fileName';
-        await supabase.storage.from('dosis-fotos').uploadBinary(
+        await supabase.storage
+            .from('dosis-fotos')
+            .uploadBinary(
               storagePath,
               await fotoFile.readAsBytes(),
               fileOptions: const FileOptions(contentType: 'image/jpeg'),
             );
-        fotoUrl =
-            supabase.storage.from('dosis-fotos').getPublicUrl(storagePath);
+        fotoUrl = supabase.storage
+            .from('dosis-fotos')
+            .getPublicUrl(storagePath);
       }
 
       // 5. Registrar la dosis

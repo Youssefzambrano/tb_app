@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import 'perfil_completado_pantalla.dart';
 import '../../../../domain/usecases/registrar_usuario_usecase.dart';
 import '../../../../data/repositories_impl/usuario_repository_impl.dart';
@@ -14,7 +13,6 @@ import '../../../../data/datasources/remote/supabase/asignacion_enfermero_remote
 
 class CompletarPerfilPantalla extends StatefulWidget {
   final String nombre;
-
   const CompletarPerfilPantalla({super.key, required this.nombre});
 
   @override
@@ -23,7 +21,10 @@ class CompletarPerfilPantalla extends StatefulWidget {
 }
 
 class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
-  final _formKey = GlobalKey<FormState>();
+  // Llaves independientes para validar cada sección del formulario
+  final _formKeyPagina1 = GlobalKey<FormState>();
+  final _formKeyPagina2 = GlobalKey<FormState>();
+
   final TextEditingController _documentoController = TextEditingController();
   final TextEditingController _direccionController = TextEditingController();
   final TextEditingController _telefonoController = TextEditingController();
@@ -35,6 +36,7 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
   String? _tipoDocumento;
   String? _genero;
   DateTime? _fechaNacimiento;
+  bool _errorFecha = false;
   int _paginaActual = 0;
 
   final PageController _pageController = PageController();
@@ -46,24 +48,38 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-
     if (picked != null) {
-      setState(() => _fechaNacimiento = picked);
+      setState(() {
+        _fechaNacimiento = picked;
+        _errorFecha = false;
+      });
     }
   }
 
   void _siguientePagina() {
-    if (_formKey.currentState!.validate()) {
+    if (_fechaNacimiento == null) {
+      setState(() => _errorFecha = true);
+    }
+
+    if (_formKeyPagina1.currentState!.validate() && _fechaNacimiento != null) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
-      setState(() => _paginaActual++);
+      setState(() => _paginaActual = 1);
     }
   }
 
+  void _atrasPagina() {
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
+    setState(() => _paginaActual = 0);
+  }
+
   Future<void> _guardarPerfil() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKeyPagina2.currentState!.validate()) {
       final registrarUsuarioUseCase = RegistrarUsuarioUseCase(
         UsuarioRepositoryImpl(
           supabase: Supabase.instance.client,
@@ -75,16 +91,13 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
         PacienteRepositoryImpl(supabase: Supabase.instance.client),
       );
 
-      final asignacionRepository = AsignacionEnfermeroRepositoryImpl(
-        remoteDataSource: AsignacionEnfermeroRemoteDataSourceImpl(
-          supabase: Supabase.instance.client,
+      final asignarEnfermeroUseCase = AsignarEnfermeroAutomaticoUseCase(
+        AsignacionEnfermeroRepositoryImpl(
+          remoteDataSource: AsignacionEnfermeroRemoteDataSourceImpl(
+            supabase: Supabase.instance.client,
+          ),
         ),
       );
-
-      final asignarEnfermeroUseCase = AsignarEnfermeroAutomaticoUseCase(
-        asignacionRepository,
-      );
-
       try {
         final usuario = await registrarUsuarioUseCase(
           nombre: widget.nombre,
@@ -104,14 +117,11 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
 
         String? nombreEnfermeroAsignado;
         String? mensajeAsignacion;
-
         try {
           final asignacion = await asignarEnfermeroUseCase(
             idPaciente: usuario.id,
           );
-
           nombreEnfermeroAsignado = asignacion?.nombreEnfermero;
-
           if (nombreEnfermeroAsignado == null ||
               nombreEnfermeroAsignado.trim().isEmpty) {
             mensajeAsignacion =
@@ -124,7 +134,6 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
         }
 
         if (!mounted) return;
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -137,7 +146,6 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
         );
       } catch (e) {
         if (!mounted) return;
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al guardar perfil: ${e.toString()}')),
         );
@@ -159,7 +167,6 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -196,187 +203,234 @@ class _CompletarPerfilPantallaState extends State<CompletarPerfilPantalla> {
               ),
               const SizedBox(height: 24),
               Expanded(
-                child: Form(
-                  key: _formKey,
-                  child: PageView(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      Column(
-                        children: [
-                          DropdownButtonFormField<String>(
-                            value: _tipoDocumento,
-                            decoration: const InputDecoration(
-                              labelText: 'Tipo de documento',
-                              border: OutlineInputBorder(),
-                            ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'Cedula de Ciudadania',
-                                child: Text('Cedula de Ciudadania'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'Pasaporte',
-                                child: Text('Pasaporte'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'Cedula de Extranjeria',
-                                child: Text('Cedula de Extranjeria'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'NUIP',
-                                child: Text('NUIP'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() => _tipoDocumento = value);
-                            },
-                            validator:
-                                (value) =>
-                                    value == null ? 'Campo requerido' : null,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _documentoController,
-                            decoration: const InputDecoration(
-                              labelText: 'Número de documento',
-                              border: OutlineInputBorder(),
-                            ),
-                            keyboardType: TextInputType.number,
-                            validator:
-                                (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
-                          ),
-                          const SizedBox(height: 16),
-                          InkWell(
-                            onTap: () => _selectFechaNacimiento(context),
-                            child: InputDecorator(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    // PÁGINA 1: Datos Personales
+                    Form(
+                      key: _formKeyPagina1,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DropdownButtonFormField<String>(
+                              value: _tipoDocumento,
                               decoration: const InputDecoration(
-                                labelText: 'Fecha de nacimiento',
+                                labelText: 'Tipo de documento',
                                 border: OutlineInputBorder(),
                               ),
-                              child: Text(
-                                _fechaNacimiento == null
-                                    ? 'Selecciona una fecha'
-                                    : DateFormat(
-                                      'dd/MM/yyyy',
-                                    ).format(_fechaNacimiento!),
-                                style: const TextStyle(fontSize: 16),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'Cedula de Ciudadania',
+                                  child: Text('Cédula de Ciudadanía'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'Pasaporte',
+                                  child: Text('Pasaporte'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'Cedula de Extranjeria',
+                                  child: Text('Cédula de Extranjería'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'NUIP',
+                                  child: Text('NUIP'),
+                                ),
+                              ],
+                              onChanged:
+                                  (value) =>
+                                      setState(() => _tipoDocumento = value),
+                              validator:
+                                  (value) =>
+                                      value == null ? 'Campo requerido' : null,
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _documentoController,
+                              decoration: const InputDecoration(
+                                labelText: 'Número de documento',
+                                border: OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator:
+                                  (value) =>
+                                      value == null || value.isEmpty
+                                          ? 'Campo requerido'
+                                          : null,
+                            ),
+                            const SizedBox(height: 16),
+                            InkWell(
+                              onTap: () => _selectFechaNacimiento(context),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Fecha de nacimiento',
+                                  border: const OutlineInputBorder(),
+                                  errorText:
+                                      _errorFecha ? 'Campo requerido' : null,
+                                ),
+                                child: Text(
+                                  _fechaNacimiento == null
+                                      ? 'Selecciona una fecha'
+                                      : DateFormat(
+                                        'dd/MM/yyyy',
+                                      ).format(_fechaNacimiento!),
+                                  style: const TextStyle(fontSize: 16),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<String>(
-                            value: _genero,
-                            decoration: const InputDecoration(
-                              labelText: 'Género',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<String>(
+                              value: _genero,
+                              decoration: const InputDecoration(
+                                labelText: 'Género',
+                                border: OutlineInputBorder(),
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'Masculino',
+                                  child: Text('Masculino'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'Femenino',
+                                  child: Text('Femenino'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'Otro',
+                                  child: Text('Otro'),
+                                ),
+                              ],
+                              onChanged:
+                                  (value) => setState(() => _genero = value),
+                              validator:
+                                  (value) =>
+                                      value == null ? 'Campo requerido' : null,
                             ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'Masculino',
-                                child: Text('Masculino'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'Femenino',
-                                child: Text('Femenino'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'Otro',
-                                child: Text('Otro'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() => _genero = value);
-                            },
-                            validator:
-                                (value) =>
-                                    value == null ? 'Campo requerido' : null,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                      Column(
-                        children: [
-                          TextFormField(
-                            controller: _direccionController,
-                            decoration: const InputDecoration(
-                              labelText: 'Dirección',
-                              border: OutlineInputBorder(),
+                    ),
+                    // PÁGINA 2: Información de Contacto
+                    Form(
+                      key: _formKeyPagina2,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _direccionController,
+                              decoration: const InputDecoration(
+                                labelText: 'Dirección',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator:
+                                  (value) =>
+                                      value == null || value.isEmpty
+                                          ? 'Campo requerido'
+                                          : null,
                             ),
-                            validator:
-                                (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _telefonoController,
-                            decoration: const InputDecoration(
-                              labelText: 'Teléfono',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _telefonoController,
+                              decoration: const InputDecoration(
+                                labelText: 'Teléfono',
+                                border: OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.phone,
+                              validator:
+                                  (value) =>
+                                      value == null || value.isEmpty
+                                          ? 'Campo requerido'
+                                          : null,
                             ),
-                            keyboardType: TextInputType.phone,
-                            validator:
-                                (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _contactoEmergenciaController,
-                            decoration: const InputDecoration(
-                              labelText: 'Nombre contacto de emergencia',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _contactoEmergenciaController,
+                              decoration: const InputDecoration(
+                                labelText: 'Nombre contacto de emergencia',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator:
+                                  (value) =>
+                                      value == null || value.isEmpty
+                                          ? 'Campo requerido'
+                                          : null,
                             ),
-                            validator:
-                                (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _telefonoEmergenciaController,
-                            decoration: const InputDecoration(
-                              labelText: 'Número contacto de emergencia',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _telefonoEmergenciaController,
+                              decoration: const InputDecoration(
+                                labelText: 'Número contacto de emergencia',
+                                border: OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.phone,
+                              validator:
+                                  (value) =>
+                                      value == null || value.isEmpty
+                                          ? 'Campo requerido'
+                                          : null,
                             ),
-                            keyboardType: TextInputType.phone,
-                            validator:
-                                (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed:
-                      _paginaActual == 0 ? _siguientePagina : _guardarPerfil,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF67BF63),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+              const SizedBox(height: 24),
+              // CORRECCIÓN: Fila de botones dinámicos con SizedBox en 'Atrás'
+              Row(
+                children: [
+                  if (_paginaActual == 1) ...[
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton(
+                          onPressed: _atrasPagina,
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF67BF63)),
+                            foregroundColor: const Color(0xFF67BF63),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                          child: const Text(
+                            'Atrás',
+                            style: TextStyle(
+                              fontFamily: 'Manrope',
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed:
+                            _paginaActual == 0
+                                ? _siguientePagina
+                                : _guardarPerfil,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF67BF63),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: Text(
+                          _paginaActual == 0 ? 'Siguiente' : 'Guardar perfil',
+                          style: const TextStyle(
+                            fontFamily: 'Manrope',
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  child: Text(
-                    _paginaActual == 0 ? 'Siguiente' : 'Guardar perfil',
-                    style: const TextStyle(fontFamily: 'Manrope', fontSize: 18),
-                  ),
-                ),
+                ],
               ),
             ],
           ),

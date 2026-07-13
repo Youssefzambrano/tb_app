@@ -1,28 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-// domain
 import '../../domain/usecases/iniciar_sesion_usecase.dart';
-
-// data
 import '../../data/models/usuario_model.dart';
-
-// presentation
-import 'session_controller.dart';
-
-// widgets
 import '../../widgets/dialogo_cargando.dart';
+import 'session_controller.dart';
 
 class LoginController {
   final IniciarSesionUseCase iniciarSesionUseCase;
-  final SupabaseClient supabase;
-  final SessionController sessionController;
 
-  LoginController({
-    required this.iniciarSesionUseCase,
-    required this.supabase,
-    required this.sessionController,
-  });
+  LoginController()
+    : iniciarSesionUseCase = IniciarSesionUseCase(
+        supabase: Supabase.instance.client,
+      );
 
   Future<void> iniciarSesion({
     required BuildContext context,
@@ -39,21 +28,19 @@ class LoginController {
     try {
       await iniciarSesionUseCase(email: emailNormalizado, password: password);
 
-      final data =
-          await Supabase.instance.client
-              .from('usuario')
-              .select()
-              .eq('correo_electronico', emailNormalizado)
-              .single();
+      final data = await Supabase.instance.client
+          .from('usuario')
+          .select()
+          .eq('correo_electronico', emailNormalizado)
+          .single();
 
       final usuario = UsuarioModel.fromMap(data);
 
-      await sessionController.inicializarUsuarioActual(usuario);
+      await SessionController().inicializarUsuarioActual(usuario);
 
       if (!context.mounted) return;
       Navigator.of(context).pop();
-
-      final rutaInicio = sessionController.rutaInicioPorRol;
+      final rutaInicio = SessionController().rutaInicioPorRol;
       Navigator.pushReplacementNamed(context, rutaInicio);
     } on AuthException {
       if (!context.mounted) return;
@@ -66,9 +53,9 @@ class LoginController {
       debugPrint('📋 $stack');
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 }
