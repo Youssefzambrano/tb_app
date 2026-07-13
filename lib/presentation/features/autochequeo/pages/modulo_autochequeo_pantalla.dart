@@ -13,8 +13,6 @@ class ModuloAutochequeoPantalla extends StatefulWidget {
 }
 
 class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
-  final PageController _pageController = PageController();
-  int _paginaActual = 0;
   bool _sinSintomas = false;
   bool _enviando = false;
   bool _cargando = true;
@@ -66,9 +64,9 @@ class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
 
     final now = DateTime.now();
     final inicioSemana = DateTime(now.year, now.month, now.day - (now.weekday - 1));
-    final inicioStr = '${inicioSemana.year}-${inicioSemana.month.toString().padLeft(2, '0')}-${inicioSemana.day.toString().padLeft(2, '0')}';
+    final inicioStr =
+        '${inicioSemana.year}-${inicioSemana.month.toString().padLeft(2, '0')}-${inicioSemana.day.toString().padLeft(2, '0')}';
 
-    // El seguimiento semanal se registra en seguimiento_paciente
     final existing = await Supabase.instance.client
         .from('seguimiento_paciente')
         .select('id')
@@ -103,18 +101,6 @@ class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
     }
   }
 
-  void _siguientePagina() {
-    if (_sinSintomas) {
-      _enviarChequeo();
-      return;
-    }
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    );
-    setState(() => _paginaActual++);
-  }
-
   Future<void> _enviarChequeo() async {
     setState(() => _enviando = true);
 
@@ -122,10 +108,10 @@ class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
       final bool haySintomas = !_sinSintomas && _selectedIds.isNotEmpty;
       final supabase = Supabase.instance.client;
       final now = DateTime.now();
-      final fechaStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final fechaStr =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
       if (_idTratamiento != null && _idPaciente != null) {
-        // 1. Crear registro de seguimiento semanal
         final seguimiento = await supabase
             .from('seguimiento_paciente')
             .insert({
@@ -139,7 +125,6 @@ class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
 
         final idSeguimiento = seguimiento['id'] as int;
 
-        // 2. Insertar síntomas si hay alguno seleccionado
         if (haySintomas) {
           final rows = _selectedIds
               .map((id) => {
@@ -173,18 +158,10 @@ class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
   @override
   Widget build(BuildContext context) {
     if (_cargando) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final theme = Theme.of(context);
-    final bool enPagina1 = _paginaActual == 0;
-    final bool botonEsEnviar = !enPagina1 || _sinSintomas;
-
-    final mitad = (_sintomas.length / 2).ceil();
-    final pagina1Sintomas = _sintomas.take(mitad).toList();
-    final pagina2Sintomas = _sintomas.skip(mitad).toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -213,103 +190,90 @@ class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
               const SizedBox(height: 6),
               Center(
                 child: Text(
-                  enPagina1
-                      ? '¿Presentas alguno de los siguientes síntomas?'
-                      : 'Selecciona los que hayas presentado',
+                  '¿Presentas alguno de los siguientes síntomas?',
                   style: theme.textTheme.titleMedium,
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: const NeverScrollableScrollPhysics(),
+                child: ListView(
                   children: [
-                    ListView(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          decoration: BoxDecoration(
-                            color: _sinSintomas
-                                ? const Color(0xFF67BF63).withValues(alpha: 0.1)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: _sinSintomas
-                                  ? const Color(0xFF67BF63)
-                                  : Colors.grey.shade300,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: CheckboxListTile(
-                            title: const Text(
-                              'No tengo síntomas',
-                              style: TextStyle(
-                                fontFamily: 'Manrope',
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF67BF63),
-                              ),
-                            ),
-                            secondary: const Icon(
-                              Icons.check_circle_outline,
-                              color: Color(0xFF67BF63),
-                            ),
-                            value: _sinSintomas,
-                            activeColor: const Color(0xFF67BF63),
-                            onChanged: (val) => setState(() {
-                              _sinSintomas = val ?? false;
-                              if (_sinSintomas) _selectedIds.clear();
-                            }),
+                    ..._sintomas.map((s) {
+                      final id = s['id'] as int;
+                      final seleccionado = _selectedIds.contains(id);
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 4),
+                        decoration: BoxDecoration(
+                          color: seleccionado && !_sinSintomas
+                              ? const Color(0xFF67BF63).withValues(alpha: 0.08)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: seleccionado && !_sinSintomas
+                                ? const Color(0xFF67BF63)
+                                : Colors.grey.shade200,
                           ),
                         ),
-                        const Divider(height: 12),
-                        ...pagina1Sintomas.map((s) {
-                          final id = s['id'] as int;
-                          return CheckboxListTile(
-                            title: Text(
-                              s['nombre'] as String,
-                              style: TextStyle(
-                                fontFamily: 'Manrope',
-                                color: _sinSintomas
-                                    ? Colors.grey.shade400
-                                    : Colors.black87,
-                              ),
-                            ),
-                            value: _selectedIds.contains(id),
-                            activeColor: const Color(0xFF67BF63),
-                            onChanged: _sinSintomas
-                                ? null
-                                : (val) => setState(() {
-                                      if (val == true) {
-                                        _selectedIds.add(id);
-                                      } else {
-                                        _selectedIds.remove(id);
-                                      }
-                                    }),
-                          );
-                        }),
-                      ],
-                    ),
-                    ListView(
-                      children: pagina2Sintomas.map((s) {
-                        final id = s['id'] as int;
-                        return CheckboxListTile(
+                        child: CheckboxListTile(
                           title: Text(
                             s['nombre'] as String,
-                            style: const TextStyle(fontFamily: 'Manrope'),
+                            style: TextStyle(
+                              fontFamily: 'Manrope',
+                              color: _sinSintomas
+                                  ? Colors.grey.shade400
+                                  : Colors.black87,
+                            ),
                           ),
-                          value: _selectedIds.contains(id),
+                          value: seleccionado,
                           activeColor: const Color(0xFF67BF63),
-                          onChanged: (val) => setState(() {
-                            if (val == true) {
-                              _selectedIds.add(id);
-                            } else {
-                              _selectedIds.remove(id);
-                            }
-                          }),
-                        );
-                      }).toList(),
+                          onChanged: _sinSintomas
+                              ? null
+                              : (val) => setState(() {
+                                    if (val == true) {
+                                      _selectedIds.add(id);
+                                    } else {
+                                      _selectedIds.remove(id);
+                                    }
+                                  }),
+                        ),
+                      );
+                    }),
+                    const Divider(height: 16),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: _sinSintomas
+                            ? const Color(0xFF67BF63).withValues(alpha: 0.1)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _sinSintomas
+                              ? const Color(0xFF67BF63)
+                              : Colors.grey.shade300,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: CheckboxListTile(
+                        title: const Text(
+                          'No tengo síntomas',
+                          style: TextStyle(
+                            fontFamily: 'Manrope',
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF67BF63),
+                          ),
+                        ),
+                        secondary: const Icon(
+                          Icons.check_circle_outline,
+                          color: Color(0xFF67BF63),
+                        ),
+                        value: _sinSintomas,
+                        activeColor: const Color(0xFF67BF63),
+                        onChanged: (val) => setState(() {
+                          _sinSintomas = val ?? false;
+                          if (_sinSintomas) _selectedIds.clear();
+                        }),
+                      ),
                     ),
                   ],
                 ),
@@ -319,9 +283,7 @@ class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _enviando
-                      ? null
-                      : (botonEsEnviar ? _enviarChequeo : _siguientePagina),
+                  onPressed: _enviando ? null : _enviarChequeo,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF67BF63),
                     foregroundColor: Colors.white,
@@ -338,12 +300,9 @@ class _ModuloAutochequeoPantallaState extends State<ModuloAutochequeoPantalla> {
                             strokeWidth: 2.5,
                           ),
                         )
-                      : Text(
-                          botonEsEnviar ? 'Enviar respuesta' : 'Siguiente',
-                          style: const TextStyle(
-                            fontFamily: 'Manrope',
-                            fontSize: 18,
-                          ),
+                      : const Text(
+                          'Enviar respuesta',
+                          style: TextStyle(fontFamily: 'Manrope', fontSize: 18),
                         ),
                 ),
               ),

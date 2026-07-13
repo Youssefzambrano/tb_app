@@ -24,6 +24,7 @@ class InicioUsuarioPantalla extends StatefulWidget {
 class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
   bool _faltaDosisHoy = false;
   bool _faltaChequeoSemana = false;
+  static bool _autochequeoInicialMostrado = false;
 
   @override
   void initState() {
@@ -62,6 +63,30 @@ class _InicioUsuarioPantallaState extends State<InicioUsuarioPantalla> {
         listen: false,
       );
       controller.cargarResumen(id);
+    }
+
+    // Mostrar autochequeo en el primer inicio de sesión
+    if (id != null && !_autochequeoInicialMostrado && mounted) {
+      try {
+        final tieneSeguimiento = await Supabase.instance.client
+            .from('seguimiento_paciente')
+            .select('id')
+            .eq('id_paciente', id)
+            .limit(1)
+            .maybeSingle();
+
+        if (tieneSeguimiento == null && mounted) {
+          _autochequeoInicialMostrado = true;
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const ModuloAutochequeoPantalla(),
+            ),
+          );
+        }
+      } catch (_) {
+        // Si falla la consulta, continuar normalmente sin bloquear
+      }
     }
 
     _verificarPendientes();

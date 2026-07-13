@@ -55,10 +55,10 @@ class SessionController {
   String get correoUsuario => usuarioActual?.correoElectronico ?? '';
   String get nivelAcceso => usuarioActual?.nivelAcceso ?? 'Basico';
   bool get esEnfermero => nivelAcceso.toLowerCase() == 'enfermero';
-  String get rutaInicioPorRol =>
-      esEnfermero ? AppRoutes.inicioEnfermero : AppRoutes.inicio;
-
-  static void resetForTest() {
-    _instance = null;
+  bool get esAdmin => nivelAcceso.toLowerCase() == 'administrador';
+  String get rutaInicioPorRol {
+    if (esAdmin) return AppRoutes.inicioAdmin;
+    if (esEnfermero) return AppRoutes.inicioEnfermero;
+    return AppRoutes.inicio;
   }
 }
